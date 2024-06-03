@@ -1,0 +1,16 @@
+{
+  "name": "policy_comparison",
+  "template": "You are an AI assistant trained to compare insurance policies clearly and accurately.\n\nPlease provide a detailed comparison of the following insurance policies. Focus on key differences in coverage areas, limits, exclusions, premiums, and important conditions. Highlight advantages and disadvantages of each policy.\n\nPolicy 1:\n{policy_1_text}\n\nPolicy 2:\n{policy_2_text}\n\nComparison Analysis:",
+  "task_type": "policy_comparison",
+  "description": "Compare different insurance policies to highlight key differences, advantages, and disadvantages",
+  "variables": ["policy_1_text", "policy_2_text"],
+  "strategy_type": "zero_shot",
+  "metadata": {
+    "recommended_models": ["llama2-7b-chat", "mistral-7b-instruct"],
+    "example_input": {
+      "policy_1_text": "AUTO INSURANCE POLICY A\nPolicy Number: AP-12345678\n\nNamed Insured: John Smith\nPolicy Period: 01/01/2023 to 01/01/2024\n\nCOVERAGES AND LIMITS:\nLiability: $100,000 per person / $300,000 per accident\nProperty Damage: $50,000 per accident\nMedical Payments: $5,000 per person\nUninsured Motorist: $100,000 per person / $300,000 per accident\nComprehensive: $500 deductible\nCollision: $500 deductible\n\nEXCLUSIONS:\nIntentional damage, racing, business use unless declared.",
+      "policy_2_text": "AUTO INSURANCE POLICY B\nPolicy Number: BP-87654321\n\nNamed Insured: Jane Doe\nPolicy Period: 01/01/2023 to 01/01/2024\n\nCOVERAGES AND LIMITS:\nLiability: $250,000 per person / $500,000 per accident\nProperty Damage: $100,000 per accident\nMedical Payments: $10,000 per person\nUninsured Motorist: $250,000 per person / $500,000 per accident\nComprehensive: $250 deductible\nCollision: $250 deductible\n\nEXCLUSIONS:\nIntentional damage, racing, business use unless declared, ridesharing."
+    },
+    "creation_date": "2023-06-15"
+  }
+} 

@@ -1,0 +1,16 @@
+{
+  "name": "customer_inquiry_detailed",
+  "template": "You are an AI assistant trained to help insurance professionals respond to customer inquiries with detailed, accurate information.\n\nPlease draft a comprehensive response to the following customer inquiry about insurance coverage, policies, or claims. The response should:\n\n1. Address all aspects of the customer's inquiry\n2. Provide specific, accurate information based on the policy details\n3. Explain insurance concepts in clear, accessible language\n4. Offer actionable next steps if applicable\n5. Maintain a helpful, professional, and empathetic tone\n\nCustomer Inquiry:\n{inquiry_text}\n\nRelevant Policy Information:\n{policy_details}\n\nDraft Response:",
+  "task_type": "customer_communication",
+  "description": "Detailed response to a customer inquiry with specific policy information",
+  "variables": ["inquiry_text", "policy_details"],
+  "strategy_type": "zero_shot",
+  "metadata": {
+    "recommended_models": ["llama2-7b-chat", "mistral-7b-instruct"],
+    "example_input": {
+      "inquiry_text": "I'm planning to rent out my basement as an apartment for extra income. Will my current homeowners insurance cover this, or do I need additional coverage? Also, what happens if my tenant damages something or gets injured on the property?",
+      "policy_details": "Homeowners Policy #HP-12345\nStandard HO-3 policy with personal liability coverage of $300,000\nNo current endorsements for rental activities\nPolicy excludes coverage for business activities conducted on premises without specific endorsement"
+    },
+    "creation_date": "2023-06-15"
+  }
+} 

@@ -1,0 +1,17 @@
+{
+  "name": "claim_response_denial",
+  "template": "You are an AI assistant trained to help insurance professionals draft claim denial responses.\n\nPlease draft a professional, clear, and empathetic response to the following insurance claim that must be denied. The response should:\n\n1. Clearly state that the claim is denied\n2. Explain the specific policy terms or exclusions that apply\n3. Reference relevant policy sections\n4. Explain the claimant's options (appeal process, etc.)\n5. Maintain a respectful and professional tone\n\nClaim Details:\n{claim_text}\n\nPolicy Information:\n{policy_info}\n\nReason for Denial:\n{denial_reason}\n\nDraft Response:",
+  "task_type": "claim_response",
+  "description": "Professional response for an insurance claim denial",
+  "variables": ["claim_text", "policy_info", "denial_reason"],
+  "strategy_type": "zero_shot",
+  "metadata": {
+    "recommended_models": ["llama2-7b-chat", "mistral-7b-instruct"],
+    "example_input": {
+      "claim_text": "Claim #CL-78901\nDate of Loss: 03/15/2023\nClaimant: Sarah Johnson\nType: Water damage to basement from pipe burst during freezing temperatures while property was vacant for 3 weeks.",
+      "policy_info": "Homeowners Policy #HP-56789\nCoverage: Standard homeowners policy with water damage coverage, but exclusion for damage resulting from freezing while property is vacant unless heat is maintained or water is shut off and systems drained.",
+      "denial_reason": "Property was vacant for more than 14 days during freezing temperatures without heat maintained or water systems drained, which falls under the freezing exclusion in Section 8.2 of the policy."
+    },
+    "creation_date": "2023-06-15"
+  }
+} 

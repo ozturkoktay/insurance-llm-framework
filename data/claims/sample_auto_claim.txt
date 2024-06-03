@@ -1,0 +1,46 @@
+ABC INSURANCE COMPANY
+AUTO INSURANCE CLAIM FORM
+Claim Number: CL-87654321
+
+CLAIMANT INFORMATION:
+Policyholder: John Smith
+Policy Number: AP-12345678
+Contact Phone: (555) 123-4567
+Email: john.smith@email.com
+
+INCIDENT DETAILS:
+Date of Incident: 05/15/2023
+Time: Approximately 3:30 PM
+Location: Intersection of Oak Street and Maple Avenue, Anytown, USA
+Weather Conditions: Clear, dry road conditions
+
+DESCRIPTION OF INCIDENT:
+I was stopped at a red light at the intersection of Oak Street and Maple Avenue. When the light turned green, I proceeded forward. Another vehicle (a blue Honda Civic) ran the red light coming from Maple Avenue and collided with the passenger side of my vehicle. The impact pushed my car into the adjacent lane. There were no injuries, but both vehicles sustained significant damage.
+
+DAMAGE DESCRIPTION:
+My vehicle (2020 Toyota Camry) has significant damage to the passenger side doors and front quarter panel. The airbags did not deploy. The vehicle was drivable after the accident, but the passenger door cannot be opened. I had the vehicle towed to City Auto Body Shop (555-789-0123) for an estimate.
+
+OTHER PARTY INFORMATION:
+Driver Name: Sarah Johnson
+Contact Information: (555) 987-6543
+Vehicle: 2019 Honda Civic, blue
+Insurance Company: XYZ Insurance
+Policy Number: Unknown
+
+WITNESSES:
+1. Michael Brown, (555) 234-5678, pedestrian at the corner
+2. Officer Thomas Wilson, Badge #4578, Anytown Police Department
+
+POLICE REPORT:
+Report Number: APD-2023-05-15-42
+Reporting Officer: Officer Thomas Wilson
+Department: Anytown Police Department
+
+ADDITIONAL INFORMATION:
+I took photos of both vehicles and the scene immediately after the accident. I also obtained contact information from two witnesses who saw that the other driver ran the red light. The police were called to the scene and filed a report.
+
+DECLARATION:
+I hereby declare that the information provided above is true and accurate to the best of my knowledge. I authorize ABC Insurance Company to obtain any necessary information related to this claim.
+
+Signature: John Smith (electronic signature)
+Date: 05/16/2023 

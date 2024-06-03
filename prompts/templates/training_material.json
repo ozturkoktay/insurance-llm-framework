@@ -1,0 +1,17 @@
+{
+  "name": "training_material",
+  "template": "You are an AI assistant trained to create educational content and training materials for insurance professionals or customers.\n\nPlease create training material on the following insurance topic. The content should be clear, accurate, and tailored to the specified audience. Include relevant examples, key points, and actionable information.\n\nTopic:\n{topic}\n\nTarget Audience:\n{audience}\n\nFormat:\n{format}\n\nTraining Material:",
+  "task_type": "training_material",
+  "description": "Create educational content and training materials for insurance professionals or customers",
+  "variables": ["topic", "audience", "format"],
+  "strategy_type": "zero_shot",
+  "metadata": {
+    "recommended_models": ["llama2-7b-chat", "mistral-7b-instruct"],
+    "example_input": {
+      "topic": "Understanding Auto Insurance Liability Coverage",
+      "audience": "New insurance customers",
+      "format": "FAQ guide with examples"
+    },
+    "creation_date": "2023-06-15"
+  }
+} 

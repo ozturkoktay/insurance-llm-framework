@@ -1,0 +1,16 @@
+{
+  "name": "compliance_check",
+  "template": "You are an AI assistant trained to analyze insurance documents for compliance with regulations and standards.\n\nPlease analyze the following document for compliance with insurance regulations and standards. Identify any potential compliance issues, explain why they are problematic, and suggest remediation steps.\n\nDocument to check:\n{document_text}\n\nJurisdiction/Regulations to consider:\n{compliance_context}\n\nCompliance Analysis:",
+  "task_type": "compliance_check",
+  "description": "Analyze documents or responses for compliance with insurance regulations and standards",
+  "variables": ["document_text", "compliance_context"],
+  "strategy_type": "zero_shot",
+  "metadata": {
+    "recommended_models": ["llama2-7b-chat", "mistral-7b-instruct"],
+    "example_input": {
+      "document_text": "INSURANCE POLICY CANCELLATION NOTICE\n\nDear Policyholder,\n\nYour insurance policy #12345 will be cancelled effective immediately due to non-payment. You have 5 days to contact us regarding this matter.\n\nRegards,\nInsurance Company",
+      "compliance_context": "US insurance regulations requiring minimum 10-day notice period for policy cancellations due to non-payment."
+    },
+    "creation_date": "2023-06-15"
+  }
+} 

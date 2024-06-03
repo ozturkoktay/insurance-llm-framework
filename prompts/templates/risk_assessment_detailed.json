@@ -1,0 +1,16 @@
+{
+  "name": "risk_assessment_detailed",
+  "template": "You are an AI assistant trained to help insurance professionals with risk assessment.\n\nPlease analyze the following information and create a detailed risk assessment report. Your report should include:\n\n1. Executive Summary\n2. Identified Risks (categorized by type)\n3. Risk Analysis (likelihood and impact assessment)\n4. Mitigation Strategies\n5. Recommendations\n\nRisk Information:\n{risk_info}\n\nAssessment Scope:\n{assessment_scope}\n\nRisk Assessment Report:",
+  "task_type": "risk_assessment",
+  "description": "Create a structured, detailed risk assessment report based on provided information",
+  "variables": ["risk_info", "assessment_scope"],
+  "strategy_type": "zero_shot",
+  "metadata": {
+    "recommended_models": ["llama2-7b-chat", "mistral-7b-instruct"],
+    "example_input": {
+      "risk_info": "Commercial property: 3-story office building, 25,000 sq ft, built 1985, brick construction, updated electrical 2010, sprinkler system throughout, located in downtown area with moderate crime rate. Property value: $4.2M. Business operations: software development company with 75 employees, $12M annual revenue. Previous claims: water damage in 2019 ($45,000).",
+      "assessment_scope": "Property and liability risk assessment for commercial insurance policy renewal."
+    },
+    "creation_date": "2023-06-15"
+  }
+} 

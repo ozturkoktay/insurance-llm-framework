@@ -1,0 +1,69 @@
+ABC INSURANCE COMPANY
+AUTO INSURANCE POLICY
+Policy Number: AP-12345678
+
+POLICY DECLARATIONS
+
+Named Insured: John Smith
+Address: 123 Main Street, Anytown, USA 12345
+Policy Period: 01/01/2023 to 01/01/2024 (12:01 AM standard time)
+
+INSURED VEHICLE:
+2020 Toyota Camry, VIN: 1HGCM82633A123456
+
+COVERAGES AND LIMITS:
+
+Part A - LIABILITY
+Bodily Injury: $100,000 per person / $300,000 per accident
+Property Damage: $50,000 per accident
+Premium: $650.00
+
+Part B - MEDICAL PAYMENTS
+$5,000 per person
+Premium: $120.00
+
+Part C - UNINSURED MOTORIST
+Bodily Injury: $100,000 per person / $300,000 per accident
+Premium: $85.00
+
+Part D - PHYSICAL DAMAGE
+Comprehensive: $500 deductible
+Premium: $220.00
+Collision: $500 deductible
+Premium: $380.00
+
+Total Premium: $1,455.00
+
+POLICY PROVISIONS:
+
+1. INSURING AGREEMENT
+We will provide the insurance described in this policy in return for the premium and compliance with all policy provisions.
+
+2. DEFINITIONS
+"You" and "your" refer to the named insured shown in the Declarations and spouse if a resident of the same household.
+"We", "us", and "our" refer to the company providing this insurance.
+"Accident" means a sudden, unexpected, and unintended event causing bodily injury or property damage.
+
+3. DUTIES AFTER AN ACCIDENT OR LOSS
+In the event of an accident or loss, you must:
+a. Notify us promptly. Include time, place, and circumstances of the accident.
+b. Cooperate with us in the investigation, settlement, or defense of any claim.
+c. Submit to physical examinations by physicians we select, as often as we reasonably require.
+d. Authorize us to obtain medical and other relevant records.
+
+4. TERMINATION
+We may cancel this policy by mailing notice to you at least 30 days before the date of cancellation.
+You may cancel this policy at any time by returning it to us or notifying us in writing of the future date when cancellation should be effective.
+
+5. EXCLUSIONS
+This policy does not provide coverage for:
+a. Intentional damage caused by you or a family member
+b. Damage to property owned by you or a family member
+c. Using the vehicle for delivery services or ride-sharing without proper endorsement
+d. Racing or speed contests
+e. Vehicle used for business purposes unless declared
+
+This policy is subject to all terms, provisions, and conditions as detailed in the complete policy document provided to you.
+
+Authorized Representative: ___________________________ 
+Date: _______________ 

@@ -1,0 +1,16 @@
+{
+  "name": "claim_response_approval",
+  "template": "You are an AI assistant trained to help insurance professionals draft claim approval responses.\n\nPlease draft a professional, clear, and empathetic response to the following insurance claim that is being approved. The response should:\n\n1. Clearly state that the claim is approved\n2. Specify the approved amount and coverage details\n3. Explain the payment process and timeline\n4. Provide any necessary next steps for the claimant\n5. Express appropriate empathy for their situation\n\nClaim Details:\n{claim_text}\n\nApproval Information:\n{approval_info}\n\nDraft Response:",
+  "task_type": "claim_response",
+  "description": "Professional response for an insurance claim approval",
+  "variables": ["claim_text", "approval_info"],
+  "strategy_type": "zero_shot",
+  "metadata": {
+    "recommended_models": ["llama2-7b-chat", "mistral-7b-instruct"],
+    "example_input": {
+      "claim_text": "Claim #CL-45678\nDate of Loss: 02/10/2023\nClaimant: Michael Brown\nType: Roof damage from windstorm\nEstimated Damage: $8,500",
+      "approval_info": "Claim approved for full amount of $8,500 minus deductible of $1,000. Payment will be issued within 5-7 business days via direct deposit to claimant's account on file."
+    },
+    "creation_date": "2023-06-15"
+  }
+} 
