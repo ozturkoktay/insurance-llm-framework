@@ -472,36 +472,91 @@ class PromptEngineeringPage:
                     if var not in ["examples", "cot_examples", "reasoning_request"]:
                         if var == "policy_text":
                             st.write(f"**{var}**")
+
+                            # Initialize the session state for this variable if it doesn't exist
+                            if f"sample_{var}" not in st.session_state:
+                                st.session_state[f"sample_{var}"] = False
+
+                            # Create a unique key for this button
                             sample_data_button = st.button(
-                                "Load Sample Policy")
+                                "Load Sample Policy", key=f"load_sample_{var}")
+
+                            # When button is clicked, set the session state flag and load the data
                             if sample_data_button:
-                                variables[var] = DataLoader.load_sample_data(
+                                st.session_state[f"sample_{var}"] = True
+                                st.session_state[f"{var}_content"] = DataLoader.load_sample_data(
                                     "policy")
+                                st.rerun()
+
+                            # If the session state flag is set, use the loaded content
+                            if st.session_state.get(f"sample_{var}", False):
+                                variables[var] = st.session_state.get(
+                                    f"{var}_content", "")
+                                text_area = st.text_area(
+                                    f"Enter {var}", value=variables[var], height=200, key=f"{var}_textarea")
+                                variables[var] = text_area
                             else:
                                 variables[var] = st.text_area(
-                                    f"Enter {var}", "", height=200)
+                                    f"Enter {var}", "", height=200, key=f"{var}_textarea")
                         elif var == "claim_text":
                             st.write(f"**{var}**")
-                            sample_data_button = st.button("Load Sample Claim")
+
+                            # Initialize the session state for this variable if it doesn't exist
+                            if f"sample_{var}" not in st.session_state:
+                                st.session_state[f"sample_{var}"] = False
+
+                            # Create a unique key for this button
+                            sample_data_button = st.button(
+                                "Load Sample Claim", key=f"load_sample_{var}")
+
+                            # When button is clicked, set the session state flag and load the data
                             if sample_data_button:
-                                variables[var] = DataLoader.load_sample_data(
+                                st.session_state[f"sample_{var}"] = True
+                                st.session_state[f"{var}_content"] = DataLoader.load_sample_data(
                                     "claim")
+                                st.rerun()
+
+                            # If the session state flag is set, use the loaded content
+                            if st.session_state.get(f"sample_{var}", False):
+                                variables[var] = st.session_state.get(
+                                    f"{var}_content", "")
+                                text_area = st.text_area(
+                                    f"Enter {var}", value=variables[var], height=200, key=f"{var}_textarea")
+                                variables[var] = text_area
                             else:
                                 variables[var] = st.text_area(
-                                    f"Enter {var}", "", height=200)
+                                    f"Enter {var}", "", height=200, key=f"{var}_textarea")
                         elif var == "inquiry_text":
                             st.write(f"**{var}**")
+
+                            # Initialize the session state for this variable if it doesn't exist
+                            if f"sample_{var}" not in st.session_state:
+                                st.session_state[f"sample_{var}"] = False
+
+                            # Create a unique key for this button
                             sample_data_button = st.button(
-                                "Load Sample Inquiry")
+                                "Load Sample Inquiry", key=f"load_sample_{var}")
+
+                            # When button is clicked, set the session state flag and load the data
                             if sample_data_button:
-                                variables[var] = DataLoader.load_sample_data(
+                                st.session_state[f"sample_{var}"] = True
+                                st.session_state[f"{var}_content"] = DataLoader.load_sample_data(
                                     "customer_inquiry")
+                                st.rerun()
+
+                            # If the session state flag is set, use the loaded content
+                            if st.session_state.get(f"sample_{var}", False):
+                                variables[var] = st.session_state.get(
+                                    f"{var}_content", "")
+                                text_area = st.text_area(
+                                    f"Enter {var}", value=variables[var], height=200, key=f"{var}_textarea")
+                                variables[var] = text_area
                             else:
                                 variables[var] = st.text_area(
-                                    f"Enter {var}", "", height=200)
+                                    f"Enter {var}", "", height=200, key=f"{var}_textarea")
                         else:
                             variables[var] = st.text_area(
-                                f"Enter {var}", "", height=200)
+                                f"Enter {var}", "", height=200, key=f"{var}_textarea")
 
                 # Prompt strategy selection
                 st.subheader("Prompt Strategy")
@@ -649,10 +704,27 @@ class PromptEngineeringPage:
                                 # Directly run the generation
                                 generation_start_time = time.time()
 
-                                # Run the actual generation
-                                generated_texts = st.session_state.inference_engine.generate(
+                                # Create a container for streaming output
+                                output_container = st.empty()
+                                generated_text = ""
+
+                                # Define callback function for streaming
+                                def streaming_callback(token):
+                                    nonlocal generated_text
+                                    generated_text += token
+                                    output_container.markdown(
+                                        f"**Generated Output:**\n\n{generated_text}")
+
+                                # Run the streaming generation
+                                full_text = st.session_state.inference_engine.generate_with_streaming(
                                     formatted_prompt,
-                                    **generation_params
+                                    callback=streaming_callback,
+                                    max_length=generation_params["max_length"],
+                                    temperature=generation_params["temperature"],
+                                    top_p=generation_params["top_p"],
+                                    top_k=generation_params["top_k"],
+                                    do_sample=generation_params["do_sample"],
+                                    timeout_seconds=generation_params["timeout_seconds"]
                                 )
 
                                 # Generation complete - set progress to 100%
@@ -669,56 +741,47 @@ class PromptEngineeringPage:
                                 progress_placeholder.empty()
                                 status_text.empty()
 
-                                if generated_texts:
-                                    generated_text = generated_texts[0]
-
-                                    # Check if it's an error message (returned by our custom timeout handler)
-                                    if generated_text.startswith("Generation timed out") or generated_text.startswith("Generation error"):
-                                        st.error(generated_text)
-                                        st.info(
-                                            "Try reducing the max tokens, using a simpler prompt, or increasing the timeout setting in the model selection page.")
-
-                                        # CPU-specific suggestions
-                                        if is_cpu_optimized:
-                                            st.warning(
-                                                "CPU-specific suggestions:")
-                                            st.markdown("""
-                                            - Try enabling 'greedy decoding' for faster generation
-                                            - Use a much shorter prompt (under 100 words)
-                                            - Reduce max tokens to 128 or less
-                                            - Try a smaller model like Phi-2 or TinyLLaMA
-                                            """)
-                                    else:
-                                        # Display generated text
-                                        st.subheader("Generated Output")
-                                        st.text_area(
-                                            "Output", generated_text, height=400)
-
-                                        generation_time = time.time() - generation_start_time
-                                        st.info(
-                                            f"Generation completed in {generation_time:.2f} seconds")
-
-                                        # Save the generated output
-                                        st.session_state.generated_outputs.append({
-                                            "template_name": selected_template_name,
-                                            "task_type": task_type,
-                                            "strategy_type": strategy_type,
-                                            "input_variables": variables.copy(),
-                                            "generation_params": generation_params.copy(),
-                                            "output": generated_text,
-                                            "timestamp": pd.Timestamp.now().isoformat(),
-                                            "generation_time": generation_time
-                                        })
-
-                                        # Show evaluation button
-                                        if st.button("Evaluate Output"):
-                                            SessionState.set_tab("evaluation")
-                                            st.rerun()
-                                else:
-                                    st.error(
-                                        "No text was generated. The model may have encountered an issue.")
+                                # Check if it's an error message (returned by our custom timeout handler)
+                                if full_text.startswith("Generation timed out") or full_text.startswith("Generation error"):
+                                    st.error(full_text)
                                     st.info(
-                                        "Try with a different prompt or model settings.")
+                                        "Try reducing the max tokens, using a simpler prompt, or increasing the timeout setting in the model selection page.")
+
+                                    # CPU-specific suggestions
+                                    if is_cpu_optimized:
+                                        st.warning(
+                                            "CPU-specific suggestions:")
+                                        st.markdown("""
+                                        - Try enabling 'greedy decoding' for faster generation
+                                        - Use a much shorter prompt (under 100 words)
+                                        - Reduce max tokens to 128 or less
+                                        - Try a smaller model like Phi-2 or TinyLLaMA
+                                        """)
+                                else:
+                                    # Save the generated text to session state
+                                    if "generated_outputs" not in st.session_state:
+                                        st.session_state.generated_outputs = []
+
+                                    generation_time = time.time() - generation_start_time
+                                    st.info(
+                                        f"Generation completed in {generation_time:.2f} seconds")
+
+                                    # Save the generated output
+                                    st.session_state.generated_outputs.append({
+                                        "template_name": selected_template_name,
+                                        "task_type": task_type,
+                                        "strategy_type": strategy_type,
+                                        "input_variables": variables.copy(),
+                                        "generation_params": generation_params.copy(),
+                                        "output": full_text,
+                                        "timestamp": pd.Timestamp.now().isoformat(),
+                                        "generation_time": generation_time
+                                    })
+
+                                    # Show evaluation button
+                                    if st.button("Evaluate Output"):
+                                        SessionState.set_tab("evaluation")
+                                        st.rerun()
 
                             except Exception as e:
                                 st.error(f"Error during generation: {str(e)}")
@@ -961,16 +1024,52 @@ class BenchmarksPage:
 
         # Load or create sample benchmarks if they don't exist
         if not benchmark_manager.list_benchmarks():
+            # Add debug logging
+            logger.info(
+                f"No benchmarks found in directory: {benchmark_manager.benchmarks_dir}")
+
             if st.button("Create Sample Benchmarks"):
                 with st.spinner("Creating sample benchmarks..."):
                     try:
+                        logger.info("Creating sample benchmarks...")
+
+                        # Ensure the benchmark directory exists
+                        os.makedirs(
+                            benchmark_manager.benchmarks_dir, exist_ok=True)
+                        logger.info(
+                            f"Ensured benchmark directory exists: {benchmark_manager.benchmarks_dir}")
+
                         # Create policy summary benchmark
                         policy_benchmark = create_policy_summary_benchmark()
+                        if policy_benchmark is None:
+                            raise ValueError(
+                                "Failed to create policy summary benchmark")
+                        logger.info(
+                            f"Created policy benchmark: {policy_benchmark.name} with {len(policy_benchmark.examples)} examples")
                         benchmark_manager.benchmarks[policy_benchmark.name] = policy_benchmark
+
+                        # Save the benchmark to disk
+                        benchmark_path = os.path.join(
+                            benchmark_manager.benchmarks_dir, f"{policy_benchmark.name}.json")
+                        policy_benchmark.save(benchmark_path)
+                        logger.info(
+                            f"Saved policy benchmark to {benchmark_path}")
 
                         # Create claim response benchmark
                         claim_benchmark = create_claim_response_benchmark()
+                        if claim_benchmark is None:
+                            raise ValueError(
+                                "Failed to create claim response benchmark")
+                        logger.info(
+                            f"Created claim benchmark: {claim_benchmark.name} with {len(claim_benchmark.examples)} examples")
                         benchmark_manager.benchmarks[claim_benchmark.name] = claim_benchmark
+
+                        # Save the benchmark to disk
+                        benchmark_path = os.path.join(
+                            benchmark_manager.benchmarks_dir, f"{claim_benchmark.name}.json")
+                        claim_benchmark.save(benchmark_path)
+                        logger.info(
+                            f"Saved claim benchmark to {benchmark_path}")
 
                         st.success("Sample benchmarks created successfully!")
                         st.rerun()
@@ -1023,16 +1122,42 @@ class BenchmarksPage:
                                             "temperature": 0.7,
                                             "top_p": 0.9,
                                             "top_k": 50,
-                                            "num_return_sequences": 1,
                                             "do_sample": True
                                         }
 
-                                        generated_texts = st.session_state.inference_engine.generate(
-                                            input_text,
-                                            **generation_params
-                                        )
+                                        # For streaming display during benchmark runs
+                                        if st.checkbox("Show generation in real-time", value=True):
+                                            # Create a container for streaming output
+                                            output_container = st.empty()
+                                            generated_text = ""
 
-                                        return generated_texts[0] if generated_texts else ""
+                                            # Define callback function for streaming
+                                            def streaming_callback(token):
+                                                nonlocal generated_text
+                                                generated_text += token
+                                                output_container.markdown(
+                                                    f"**Generating:**\n\n{generated_text}")
+
+                                            # Run the streaming generation
+                                            full_text = st.session_state.inference_engine.generate_with_streaming(
+                                                input_text,
+                                                callback=streaming_callback,
+                                                max_length=generation_params["max_length"],
+                                                temperature=generation_params["temperature"],
+                                                top_p=generation_params["top_p"],
+                                                top_k=generation_params["top_k"],
+                                                do_sample=generation_params["do_sample"]
+                                            )
+
+                                            return full_text
+                                        else:
+                                            # Use regular generation if streaming is not selected
+                                            generated_texts = st.session_state.inference_engine.generate(
+                                                input_text,
+                                                **generation_params
+                                            )
+
+                                            return generated_texts[0] if generated_texts else ""
 
                                     # Run the benchmark
                                     model_id = st.session_state.model.__class__.__name__

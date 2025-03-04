@@ -348,18 +348,14 @@ class ModelInference:
         # Set generation parameters
         gen_kwargs = {
             "max_new_tokens": max_length,
-            "temperature": temperature,
-            "top_p": top_p,
-            "top_k": top_k,
-            "do_sample": do_sample,
             "pad_token_id": self.tokenizer.eos_token_id,
         }
 
         # For greedy decoding, override sampling parameters
         if not do_sample:
-            gen_kwargs["temperature"] = 1.0
-            gen_kwargs["top_p"] = 1.0
-            gen_kwargs["top_k"] = 0
+            temperature = 1.0
+            top_p = 1.0
+            top_k = 0
 
         # Track generation start time for timeout
         start_time = time.time()
@@ -388,10 +384,10 @@ class ModelInference:
 
                 # Generate the next token
                 with torch.no_grad():
+                    # Only pass the input_ids to the model's forward method, not the generation parameters
                     outputs = self.model(
                         input_ids if not generated_ids else torch.cat(
-                            [input_ids, torch.tensor([generated_ids], device=input_ids.device)], dim=-1),
-                        **{k: v for k, v in gen_kwargs.items() if k != "max_new_tokens"}
+                            [input_ids, torch.tensor([generated_ids], device=input_ids.device)], dim=-1)
                     )
                     next_token_logits = outputs.logits[:, -1, :]
 

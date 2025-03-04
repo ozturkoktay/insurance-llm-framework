@@ -1,0 +1,52 @@
+{
+  "name": "claim_response_benchmark",
+  "task_type": "claim_response",
+  "description": "Benchmark for evaluating insurance claim response generation",
+  "examples": [
+    {
+      "id": "claim_response_001",
+      "input_text": "\nCLAIM INFORMATION:\nClaim Number: CL-87654321\nPolicyholder: John Smith\nPolicy Number: AP-12345678\nDate of Incident: 05/15/2023\nType of Claim: Auto accident\nDescription: Policyholder was stopped at a red light when another vehicle rear-ended them. Damage to rear bumper and trunk. No injuries reported.\nDamage Estimate: $2,800\nCoverage: Collision with $500 deductible\n\nTASK:\nDraft a claim approval letter to the policyholder.\n            ",
+      "reference_output": "Dear Mr. Smith,\n\nRe: Claim Number CL-87654321, Policy Number AP-12345678\n\nThank you for submitting your claim regarding the auto accident that occurred on May 15, 2023. We have completed our review of your claim for damage to your vehicle's rear bumper and trunk.\n\nI am pleased to inform you that your claim has been approved under the collision coverage of your policy. Based on the damage estimate of $2,800 and your policy's $500 deductible, we have approved a payment in the amount of $2,300.\n\nA check will be mailed to your address on file within 5-7 business days. Alternatively, if you've signed up for direct deposit, the funds will be transferred to your account within 3 business days.\n\nIf you have chosen to use one of our preferred repair shops, you may authorize them to begin work immediately, and we will coordinate payment directly with them. If you select a repair shop outside our network, please provide them with your claim information, and they can contact us with any questions.\n\nShould you have any questions about your claim or the payment, please don't hesitate to contact our claims department at (555) 123-4567 or claims@abcinsurance.com.\n\nThank you for your business. We value you as a customer and are committed to providing prompt and fair claim settlements.\n\nSincerely,\n\nClaims Representative\nABC Insurance Company",
+      "metadata": {
+        "claim_type": "auto",
+        "response_type": "approval",
+        "required_phrases": [
+          "approved",
+          "deductible",
+          "payment"
+        ],
+        "prohibited_phrases": [
+          "denied",
+          "rejection",
+          "insufficient",
+          "not covered"
+        ]
+      }
+    },
+    {
+      "id": "claim_response_002",
+      "input_text": "\nCLAIM INFORMATION:\nClaim Number: CL-12398765\nPolicyholder: Jane Doe\nPolicy Number: HP-87654321\nDate of Incident: 06/10/2023\nType of Claim: Water damage from roof leak\nDescription: Policyholder reports water damage to ceiling and walls in upstairs bathroom due to roof leak during heavy rainstorm.\nDamage Estimate: $4,500\nCoverage: Homeowner's policy with $1,000 deductible\nPolicy Exclusion: Gradual water damage and wear and tear\n\nTASK:\nDraft a claim partial approval letter to the policyholder explaining covered and non-covered portions.\n            ",
+      "reference_output": "Dear Ms. Doe,\n\nRe: Claim Number CL-12398765, Policy Number HP-87654321\n\nThank you for submitting your claim regarding the water damage that occurred on June 10, 2023, at your property. We have completed our investigation of the damage to your ceiling and walls in the upstairs bathroom resulting from the roof leak during the recent heavy rainstorm.\n\nAfter careful review, we have determined that your claim is partially approved under your homeowner's policy. Our investigation found that part of the damage was caused by a sudden and accidental roof leak, which is covered under your policy. However, our inspection also revealed evidence of long-term water intrusion due to gradual deterioration of roof flashing, which falls under the policy exclusion for gradual water damage and wear and tear.\n\nBased on our assessment:\n- The water damage to the bathroom ceiling and walls is covered: $3,200\n- The repair of the roof leak source is not covered due to gradual wear and tear: $1,300\n- Total covered amount: $3,200\n- Less your deductible of $1,000\n- Net payment approved: $2,200\n\nA check for $2,200 will be mailed to your address on file within 5-7 business days. If you've signed up for direct deposit, the funds will be transferred to your account within 3 business days.\n\nWe understand this may not be the outcome you were hoping for regarding the roof repair. While your policy doesn't cover the repair of the roof itself due to the wear and tear exclusion, we strongly recommend addressing this issue promptly to prevent future damage.\n\nIf you wish to appeal this decision or provide additional information for our consideration, please contact our claims department at (555) 987-6543 within 30 days. You may also request a copy of the inspection report for your records.\n\nShould you have any questions about your claim or the payment, please don't hesitate to contact me directly at (555) 987-6543 ext. 123 or jane.claims@abcinsurance.com.\n\nThank you for your business. We value you as a customer and are committed to providing fair claim settlements.\n\nSincerely,\n\nClaims Representative\nABC Insurance Company",
+      "metadata": {
+        "claim_type": "homeowner",
+        "response_type": "partial_approval",
+        "required_phrases": [
+          "partially approved",
+          "deductible",
+          "exclusion",
+          "not covered"
+        ],
+        "prohibited_phrases": [
+          "fully denied",
+          "completely rejected"
+        ]
+      }
+    }
+  ],
+  "metrics": [
+    "relevance",
+    "compliance",
+    "completeness",
+    "complexity"
+  ]
+}

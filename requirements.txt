@@ -27,4 +27,9 @@ tqdm==4.66.1
 # UI enhancement
 streamlit-extras==0.3.5
 plotly==5.18.0
-altair==5.2.0 
+altair==5.2.0
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0 

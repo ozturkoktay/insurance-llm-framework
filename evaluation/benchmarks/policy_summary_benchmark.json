@@ -1,0 +1,62 @@
+{
+  "name": "policy_summary_benchmark",
+  "task_type": "policy_summary",
+  "description": "Benchmark for evaluating insurance policy summarization",
+  "examples": [
+    {
+      "id": "policy_summary_001",
+      "input_text": "\nAUTO INSURANCE POLICY\nPolicy Number: AP-12345678\n\nNamed Insured: John Smith\nAddress: 123 Main Street, Anytown, USA 12345\nPolicy Period: 01/01/2023 to 01/01/2024 (12:01 AM standard time)\n\nINSURED VEHICLE:\n2020 Toyota Camry, VIN: 1HGCM82633A123456\n\nCOVERAGES AND LIMITS:\nPart A - LIABILITY\nBodily Injury: $100,000 per person / $300,000 per accident\nProperty Damage: $50,000 per accident\nPremium: $650.00\n\nPart B - MEDICAL PAYMENTS\n$5,000 per person\nPremium: $120.00\n\nPart C - UNINSURED MOTORIST\nBodily Injury: $100,000 per person / $300,000 per accident\nPremium: $85.00\n\nPart D - PHYSICAL DAMAGE\nComprehensive: $500 deductible\nPremium: $220.00\nCollision: $500 deductible\nPremium: $380.00\n\nTotal Premium: $1,455.00\n\nEXCLUSIONS:\nThis policy does not provide coverage for:\na. Intentional damage caused by you or a family member\nb. Damage to property owned by you or a family member\nc. Using the vehicle for delivery services or ride-sharing without proper endorsement\nd. Racing or speed contests\ne. Vehicle used for business purposes unless declared\n            ",
+      "reference_output": "This auto insurance policy for John Smith (Policy Number AP-12345678) covers a 2020 Toyota Camry from 01/01/2023 to 01/01/2024. It provides liability coverage ($100,000 per person/$300,000 per accident for bodily injury; $50,000 per accident for property damage), medical payments ($5,000 per person), uninsured motorist coverage ($100,000 per person/$300,000 per accident), and physical damage protection (comprehensive and collision with $500 deductibles each). The total premium is $1,455.00. Key exclusions include intentional damage, damage to owned property, delivery/ride-sharing use without endorsement, racing, and business use unless declared.",
+      "metadata": {
+        "required_sections": [
+          "coverages",
+          "limits",
+          "exclusions",
+          "premium"
+        ],
+        "policy_type": "auto",
+        "required_phrases": [
+          "deductible",
+          "coverage",
+          "exclusions"
+        ],
+        "prohibited_phrases": [
+          "not sure",
+          "can't determine"
+        ]
+      }
+    },
+    {
+      "id": "policy_summary_002",
+      "input_text": "\nHOMEOWNER'S INSURANCE POLICY\nPolicy Number: HP-87654321\n\nNamed Insured: Jane Doe\nAddress: 456 Elm Street, Anytown, USA 12345\nProperty Address: Same as above\nPolicy Period: 03/15/2023 to 03/15/2024 (12:01 AM standard time)\n\nCOVERAGES AND LIMITS:\n\nSection I - Property Coverages\nA. Dwelling: $350,000\nB. Other Structures: $35,000 (10% of Dwelling)\nC. Personal Property: $175,000 (50% of Dwelling)\nD. Loss of Use: $70,000 (20% of Dwelling)\n\nSection II - Liability Coverages\nE. Personal Liability: $300,000 per occurrence\nF. Medical Payments to Others: $5,000 per person\n\nDeductibles:\nAll perils: $1,000\nWind/Hail: $2,500\n\nPremium: $1,250.00 annually\n\nEXCLUSIONS:\nThis policy does not provide coverage for:\n1. Earth movement (earthquake, landslide)\n2. Water damage from flood or surface water\n3. Neglect or intentional loss\n4. War or nuclear hazard\n5. Business activities conducted on premises\n6. Mold damage (limited coverage available)\n            ",
+      "reference_output": "This homeowner's insurance policy for Jane Doe (Policy Number HP-87654321) covers the property at 456 Elm Street from 03/15/2023 to 03/15/2024. Property coverages include $350,000 for the dwelling, $35,000 for other structures, $175,000 for personal property, and $70,000 for loss of use. Liability coverages include $300,000 per occurrence for personal liability and $5,000 per person for medical payments to others. Deductibles are $1,000 for all perils and $2,500 for wind/hail damage. The annual premium is $1,250.00. Key exclusions include earth movement, flood damage, neglect or intentional loss, war or nuclear hazard, business activities on premises, and mold damage (with limited coverage available).",
+      "metadata": {
+        "required_sections": [
+          "coverages",
+          "limits",
+          "exclusions",
+          "premium",
+          "deductibles"
+        ],
+        "policy_type": "homeowner",
+        "required_phrases": [
+          "deductible",
+          "coverage",
+          "exclusions",
+          "liability"
+        ],
+        "prohibited_phrases": [
+          "not sure",
+          "can't determine"
+        ]
+      }
+    }
+  ],
+  "metrics": [
+    "rouge",
+    "bleu",
+    "relevance",
+    "completeness",
+    "compliance"
+  ]
+}

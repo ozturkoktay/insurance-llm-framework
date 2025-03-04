@@ -83,6 +83,22 @@ class PromptTemplate:
             metadata=data.get("metadata", {})
         )
 
+    def format(self, variables: Dict[str, str]) -> str:
+        """
+        Format the template with provided variables.
+
+        Args:
+            variables: Dictionary of variables to substitute into the template
+
+        Returns:
+            Formatted template string
+        """
+        try:
+            return self.template.format(**variables)
+        except KeyError as e:
+            logger.error(f"Missing template variable: {str(e)}")
+            raise ValueError(f"Missing template variable: {str(e)}")
+
 
 class PromptLibrary:
     """

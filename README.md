@@ -15,7 +15,6 @@ An open-source prompt engineering and evaluation framework for insurance domain 
 - [Usage](#usage)
 - [Project Structure](#project-structure)
 - [Architecture](#architecture)
-  - [SOLID Design Principles](#solid-design-principles)
   - [Key Components](#key-components)
   - [Class Hierarchy](#class-hierarchy)
 - [Model Support](#model-support)
@@ -157,14 +156,6 @@ TRANSFORMERS_CACHE=./models/cache
 LOG_LEVEL=INFO
 ```
 
-### Advanced Configuration
-
-For advanced configuration options, you can modify the following files:
-
-- `config/models.yaml`: Configure model repositories and settings
-- `config/prompts.yaml`: Default prompt templates and strategies
-- `config/evaluation.yaml`: Evaluation metrics and benchmarks
-
 ## Usage
 
 ### Starting the Web Interface
@@ -285,33 +276,6 @@ insurance-llm-framework/
 ```
 
 ## Architecture
-
-The Insurance LLM Framework is built with a modular, extensible architecture following clean code principles and SOLID design patterns.
-
-### SOLID Design Principles
-
-The codebase adheres to the following SOLID principles:
-
-1. **Single Responsibility Principle (SRP)**
-   - Each class has a single, well-defined responsibility
-   - Example: `ModelLoader` is responsible only for loading models, while `ModelInference` handles text generation
-
-2. **Open/Closed Principle (OCP)**
-   - Classes are open for extension but closed for modification
-   - Example: New evaluation metrics can be added by extending the `EvaluationMetric` base class
-
-3. **Liskov Substitution Principle (LSP)**
-   - Derived classes can be substituted for their base classes without affecting functionality
-   - Example: Different prompt strategy implementations can be used interchangeably
-
-4. **Interface Segregation Principle (ISP)**
-   - Clients are not forced to depend on interfaces they don't use
-   - Example: The framework provides focused interfaces for different components
-
-5. **Dependency Inversion Principle (DIP)**
-   - High-level modules depend on abstractions, not low-level modules
-   - Example: The application depends on abstract interfaces rather than concrete implementations
-
 ### Key Components
 
 #### Model Management
@@ -755,18 +719,6 @@ pytest
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
 
-### Code Style
-
-The project follows PEP 8 style guidelines with a few exceptions:
-- Line length limit of 100 characters
-- Google-style docstrings
-
-Use `black` and `isort` for formatting:
-
-```bash
-black .
-isort .
-```
 
 ## License
 
