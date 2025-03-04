@@ -9,14 +9,12 @@ import pandas as pd
 import os
 from typing import Dict, Any, Optional, List
 
-
 def render():
     """Render the home page."""
     st.title("🏥 Insurance LLM Framework")
     st.markdown(
         "### An Open-Source Prompt Engineering and Evaluation Framework for Insurance Domain Applications")
 
-    # Introduction
     st.markdown("""
     Welcome to the Insurance LLM Framework, a specialized toolkit designed to help insurance professionals leverage 
     the power of Large Language Models (LLMs) for various insurance tasks.
@@ -25,7 +23,6 @@ def render():
     different models specifically for insurance applications.
     """)
 
-    # Main features display
     col1, col2, col3 = st.columns([1, 1, 1])
 
     with col1:
@@ -56,7 +53,6 @@ def render():
         - Compliance checking
         """)
 
-    # Getting started section
     st.markdown("## Getting Started")
     st.markdown("""
     To get started with the Insurance LLM Framework:
@@ -69,7 +65,6 @@ def render():
     For more detailed information, check the documentation pages:
     """)
 
-    # Documentation links
     doc_col1, doc_col2, doc_col3 = st.columns([1, 1, 1])
 
     with doc_col1:
@@ -109,15 +104,12 @@ def render():
             if os.path.exists("docs/evaluation.md"):
                 st.markdown("[View Evaluation Guide]()")
 
-    # Display supported models
     st.markdown("## Supported Models")
 
-    # Check if model_loader is available to get supported models
     try:
         from models.model_loader import get_supported_models
         supported_models = get_supported_models()
 
-        # Group models by type/family
         model_families = {}
         for model in supported_models:
             family = model.split("-")[0]
@@ -125,13 +117,12 @@ def render():
                 model_families[family] = []
             model_families[family].append(model)
 
-        # Display grouped models
         for family, models in model_families.items():
             with st.expander(f"{family.capitalize()} Models", expanded=False):
                 for model in sorted(models):
                     st.markdown(f"- `{model}`")
     except:
-        # Fallback if we can't import the module
+
         st.markdown("""
         The framework supports a variety of open-source models including:
         - LLaMA-2 (7B, 13B)
@@ -140,7 +131,6 @@ def render():
         - And more...
         """)
 
-    # Footer
     st.markdown("---")
     st.markdown("### About")
     st.markdown("""
@@ -149,12 +139,10 @@ def render():
     evaluation metrics tailored to insurance needs, and benchmarks that reflect real insurance tasks.
     """)
 
-    # Version info
     st.caption("Version 0.1.0 • MIT License")
 
-
 if __name__ == "__main__":
-    # For testing the page in isolation
+
     st.set_page_config(
         page_title="Insurance LLM Framework",
         page_icon="🏥",

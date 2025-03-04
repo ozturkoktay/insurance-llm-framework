@@ -10,13 +10,11 @@ from typing import Dict, List, Optional, Any, Union
 import os
 import json
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
-
 
 class PromptStrategy:
     """Base class for prompt engineering strategies."""
@@ -62,7 +60,6 @@ class PromptStrategy:
         """
         raise NotImplementedError("Subclasses must implement this method")
 
-
 class ZeroShotPromptStrategy(PromptStrategy):
     """Zero-shot prompting strategy for insurance tasks."""
 
@@ -85,7 +82,6 @@ class ZeroShotPromptStrategy(PromptStrategy):
             Formatted prompt for zero-shot inference
         """
         return self.format_prompt(template, task_input)
-
 
 class FewShotPromptStrategy(PromptStrategy):
     """Few-shot prompting strategy for insurance tasks."""
@@ -116,23 +112,19 @@ class FewShotPromptStrategy(PromptStrategy):
         Returns:
             Formatted prompt with examples followed by the task
         """
-        # Format each example using the example template
+
         formatted_examples = []
         for example in self.examples:
             formatted_example = self.format_prompt(
                 self.example_template, example)
             formatted_examples.append(formatted_example)
 
-        # Combine examples into a single string
         examples_text = "\n\n".join(formatted_examples)
 
-        # Add examples to the task_input
         task_input_with_examples = task_input.copy()
         task_input_with_examples["examples"] = examples_text
 
-        # Format the final prompt
         return self.format_prompt(template, task_input_with_examples)
-
 
 class ChainOfThoughtPromptStrategy(PromptStrategy):
     """Chain-of-thought prompting strategy for complex insurance reasoning tasks."""
@@ -163,25 +155,21 @@ class ChainOfThoughtPromptStrategy(PromptStrategy):
         Returns:
             Formatted prompt with reasoning examples followed by the task
         """
-        # Format each example using the example template
+
         formatted_examples = []
         for example in self.cot_examples:
             formatted_example = self.format_prompt(
                 self.cot_example_template, example)
             formatted_examples.append(formatted_example)
 
-        # Combine examples into a single string
         examples_text = "\n\n".join(formatted_examples)
 
-        # Add examples to the task_input
         task_input_with_examples = task_input.copy()
         task_input_with_examples["cot_examples"] = examples_text
 
-        # Format the final prompt with explicit request for reasoning
         task_input_with_examples["reasoning_request"] = "Let's work through this step by step:"
 
         return self.format_prompt(template, task_input_with_examples)
-
 
 class ReActPromptStrategy(PromptStrategy):
     """ReAct (Reasoning + Acting) prompting strategy for complex insurance tasks."""
@@ -212,25 +200,20 @@ class ReActPromptStrategy(PromptStrategy):
         Returns:
             Formatted prompt with reasoning and acting examples
         """
-        # Format each example using the example template
+
         formatted_examples = []
         for example in self.react_examples:
             formatted_example = self.format_prompt(
                 self.react_example_template, example)
             formatted_examples.append(formatted_example)
 
-        # Combine examples into a single string
         examples_text = "\n\n".join(formatted_examples)
 
-        # Add examples to the task_input
         task_input_with_examples = task_input.copy()
         task_input_with_examples["react_examples"] = examples_text
 
-        # Format the final prompt
         return self.format_prompt(template, task_input_with_examples)
 
-
-# Factory function to create prompt strategies
 def create_prompt_strategy(
     strategy_type: str,
     **kwargs

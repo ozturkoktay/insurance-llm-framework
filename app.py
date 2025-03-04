@@ -17,7 +17,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-# Import framework components
 from models.model_loader import (
     get_supported_models,
     get_model_details,
@@ -36,7 +35,6 @@ from evaluation.benchmarks import (
 )
 from utils.dataframe_utils import prepare_dataframe_for_display
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -46,7 +44,6 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
-
 
 class TorchUtils:
     """Utility class for torch-related operations."""
@@ -75,7 +72,6 @@ class TorchUtils:
             "cuda_version": torch.version.cuda
         }
 
-        # Free memory in GB
         free_memory = torch.cuda.get_device_properties(
             0).total_memory - torch.cuda.memory_allocated(0)
         info["free_memory_gb"] = free_memory / (1024**3)
@@ -88,7 +84,6 @@ class TorchUtils:
         if TorchUtils.is_cuda_available():
             torch = TorchUtils.get_torch()
             torch.cuda.empty_cache()
-
 
 class SessionState:
     """Class to manage Streamlit session state initialization and access."""
@@ -118,7 +113,6 @@ class SessionState:
     def set_tab(tab_name: str):
         """Set the current tab."""
         st.session_state.current_tab = tab_name
-
 
 class DataLoader:
     """Class to handle loading sample data."""
@@ -152,7 +146,6 @@ class DataLoader:
             logger.error(f"Error loading sample data {file_path}: {str(e)}")
             return f"Error loading sample data: {str(e)}"
 
-
 class ModelSelectionPage:
     """Class to handle the model selection page UI and logic."""
 
@@ -163,10 +156,8 @@ class ModelSelectionPage:
         """Display system information."""
         st.subheader("System Information")
 
-        # Get torch
         torch = self.torch_utils.get_torch()
 
-        # Get more CPU info
         import platform
         import multiprocessing
 
@@ -187,7 +178,6 @@ class ModelSelectionPage:
         else:
             system_info["RAM"] = f"{os.popen('free -h').readlines()[1].split()[1]}"
 
-        # Display as a table
         system_df = pd.DataFrame(
             list(system_info.items()),
             columns=["Property", "Value"]
@@ -199,12 +189,10 @@ class ModelSelectionPage:
         """Display the model selection UI."""
         st.subheader("Model Selection")
 
-        # Get available models
         available_models = get_supported_models()
         model_details = get_model_details()
         cpu_friendly_models = get_cpu_friendly_models()
 
-        # Check if CUDA is available
         has_cuda = self.torch_utils.is_cuda_available()
 
         if not has_cuda:
@@ -212,10 +200,8 @@ class ModelSelectionPage:
                 "⚠️ Running on CPU only. Generation will be SLOW with large models. Smaller models like Phi-2 or TinyLLaMA are recommended."
             )
 
-            # Show CPU-friendly models section
             st.info("💡 CPU-Friendly Models Recommended")
 
-            # Prioritize CPU-friendly models
             model_id = st.selectbox(
                 "Choose a model",
                 available_models,
@@ -224,7 +210,6 @@ class ModelSelectionPage:
                 help="Select a model - smaller models (1-3B parameters) work best on CPU"
             )
 
-            # Show CPU warning for large models
             if model_id not in cpu_friendly_models and "13b" in model_id:
                 st.error(
                     "⚠️ This is a very large model (13B parameters) and will be EXTREMELY slow on CPU. It may appear to get stuck.")
@@ -232,10 +217,9 @@ class ModelSelectionPage:
                 st.warning(
                     "⚠️ This is a large model (7B parameters) and will be very slow on CPU. Consider using a smaller model.")
         else:
-            # GPU is available
+
             st.info("GPU detected: Using GPU for model inference")
 
-            # Get GPU info
             gpu_info = self.torch_utils.get_gpu_info()
             free_memory_gb = gpu_info["free_memory_gb"]
 
@@ -246,7 +230,6 @@ class ModelSelectionPage:
                 st.warning(
                     f"⚠️ Only {free_memory_gb:.2f}GB of GPU memory available. Consider using a smaller model or increasing quantization to 8-bit.")
 
-            # Standard model selection for GPU
             model_id = st.selectbox(
                 "Choose a model",
                 available_models,
@@ -254,11 +237,9 @@ class ModelSelectionPage:
                 help="Select an open-source LLM for insurance tasks"
             )
 
-        # Display model details
         if model_id in model_details:
             details = model_details[model_id]
 
-            # Highlight if model is CPU-friendly
             cpu_friendly_badge = "✅ CPU-Friendly" if details.get(
                 "cpu_friendly", False) else "⚠️ May be slow on CPU"
 
@@ -269,17 +250,14 @@ class ModelSelectionPage:
                     f"Best for: {details['suitable_for']}\n\n"
                     f"CPU Performance: {cpu_friendly_badge}")
 
-        # CPU optimization checkbox
         cpu_optimize = st.checkbox(
             "Enable CPU optimizations",
             value=not has_cuda,  # Default checked when no GPU
             help="Apply special optimizations for CPU-only inference (recommended when running without GPU)"
         )
 
-        # Change default quantization based on system capabilities and model
         default_quantization = 0  # 4bit by default
 
-        # For CPU, use 8-bit for large models and no quantization for small models
         if not has_cuda:
             if model_id in ["phi-1.5", "phi-2", "tiny-llama-1b"]:
                 default_quantization = 2  # None for small models on CPU
@@ -295,7 +273,6 @@ class ModelSelectionPage:
             help="Lower precision reduces memory requirements but may affect quality. For CPU, 8-bit works best for large models, while no quantization is better for smaller models like Phi-2."
         )
 
-        # Add timeout setting option - longer default for CPU
         default_timeout = 300 if not has_cuda else 60
         generation_timeout = st.slider(
             "Generation Timeout (seconds)",
@@ -308,7 +285,6 @@ class ModelSelectionPage:
 
         st.session_state.generation_timeout = generation_timeout
 
-        # Add CPU-specific max tokens limit
         if not has_cuda:
             default_max_tokens = 256 if model_id not in cpu_friendly_models else 512
             max_tokens_limit = st.slider(
@@ -326,14 +302,12 @@ class ModelSelectionPage:
     def _load_model(self, model_id: str, quantization: str, cpu_optimize: bool):
         """Load the selected model."""
         try:
-            # Determine device map
+
             device_map = "cpu" if cpu_optimize else "auto"
 
-            # Memory optimization
             if self.torch_utils.is_cuda_available():
                 self.torch_utils.clear_gpu_memory()
 
-            # For CPU, show warning about loading time for large models
             has_cuda = self.torch_utils.is_cuda_available()
             cpu_friendly_models = get_cpu_friendly_models()
 
@@ -342,7 +316,6 @@ class ModelSelectionPage:
                 loading_message.warning(
                     f"Loading {model_id} on CPU. This may take several minutes. Please be patient...")
 
-            # Load model with potential CPU optimization
             loading_kwargs = {
                 "cpu_optimize": cpu_optimize
             }
@@ -354,7 +327,6 @@ class ModelSelectionPage:
                 **loading_kwargs
             )
 
-            # Set up the inference engine with CPU optimization flag
             st.session_state.model = model
             st.session_state.tokenizer = tokenizer
             st.session_state.inference_engine = ModelInference(
@@ -366,12 +338,10 @@ class ModelSelectionPage:
 
             st.success(f"Model {model_id} loaded successfully!")
 
-            # Add guidance for CPU users
             if not has_cuda:
                 st.info(
                     "💡 CPU Usage Tips: Keep prompts short, use small max token values, and be patient during generation. The first generation after loading will be the slowest.")
 
-            # Automatically navigate to prompt engineering page
             SessionState.set_tab("prompt_engineering")
             st.rerun()
 
@@ -411,14 +381,12 @@ class ModelSelectionPage:
             with st.container():
                 model_id, quantization, cpu_optimize = self._display_model_selection_ui()
 
-            # Load model button
             if st.button("Load Model"):
                 with st.spinner(f"Loading {model_id}..."):
                     self._load_model(model_id, quantization, cpu_optimize)
 
         with col2:
             self._display_system_info()
-
 
 class PromptEngineeringPage:
     """Class to handle the prompt engineering page UI and logic."""
@@ -434,7 +402,6 @@ class PromptEngineeringPage:
                 st.rerun()
             return
 
-        # Get prompt library
         prompt_library = get_prompt_library()
 
         col1, col2 = st.columns([1, 1])
@@ -442,17 +409,14 @@ class PromptEngineeringPage:
         with col1:
             st.subheader("Prompt Template Selection")
 
-            # Get task types
             task_types = prompt_library.list_task_types()
             task_type = st.selectbox("Select Task Type", task_types)
 
-            # Get templates for the selected task
             templates = prompt_library.get_templates_by_task(task_type)
             template_names = [t.name for t in templates]
             selected_template_name = st.selectbox(
                 "Select Template", template_names)
 
-            # Get the selected template
             selected_template = prompt_library.get_template(
                 selected_template_name)
 
@@ -462,10 +426,8 @@ class PromptEngineeringPage:
                 st.text_area(
                     "Template", selected_template.template, height=300)
 
-                # Display required variables
                 st.subheader("Input Variables")
 
-                # Initialize variables dictionary
                 variables = {}
 
                 for var in selected_template.variables:
@@ -473,22 +435,18 @@ class PromptEngineeringPage:
                         if var == "policy_text":
                             st.write(f"**{var}**")
 
-                            # Initialize the session state for this variable if it doesn't exist
                             if f"sample_{var}" not in st.session_state:
                                 st.session_state[f"sample_{var}"] = False
 
-                            # Create a unique key for this button
                             sample_data_button = st.button(
                                 "Load Sample Policy", key=f"load_sample_{var}")
 
-                            # When button is clicked, set the session state flag and load the data
                             if sample_data_button:
                                 st.session_state[f"sample_{var}"] = True
                                 st.session_state[f"{var}_content"] = DataLoader.load_sample_data(
                                     "policy")
                                 st.rerun()
 
-                            # If the session state flag is set, use the loaded content
                             if st.session_state.get(f"sample_{var}", False):
                                 variables[var] = st.session_state.get(
                                     f"{var}_content", "")
@@ -501,22 +459,18 @@ class PromptEngineeringPage:
                         elif var == "claim_text":
                             st.write(f"**{var}**")
 
-                            # Initialize the session state for this variable if it doesn't exist
                             if f"sample_{var}" not in st.session_state:
                                 st.session_state[f"sample_{var}"] = False
 
-                            # Create a unique key for this button
                             sample_data_button = st.button(
                                 "Load Sample Claim", key=f"load_sample_{var}")
 
-                            # When button is clicked, set the session state flag and load the data
                             if sample_data_button:
                                 st.session_state[f"sample_{var}"] = True
                                 st.session_state[f"{var}_content"] = DataLoader.load_sample_data(
                                     "claim")
                                 st.rerun()
 
-                            # If the session state flag is set, use the loaded content
                             if st.session_state.get(f"sample_{var}", False):
                                 variables[var] = st.session_state.get(
                                     f"{var}_content", "")
@@ -529,22 +483,18 @@ class PromptEngineeringPage:
                         elif var == "inquiry_text":
                             st.write(f"**{var}**")
 
-                            # Initialize the session state for this variable if it doesn't exist
                             if f"sample_{var}" not in st.session_state:
                                 st.session_state[f"sample_{var}"] = False
 
-                            # Create a unique key for this button
                             sample_data_button = st.button(
                                 "Load Sample Inquiry", key=f"load_sample_{var}")
 
-                            # When button is clicked, set the session state flag and load the data
                             if sample_data_button:
                                 st.session_state[f"sample_{var}"] = True
                                 st.session_state[f"{var}_content"] = DataLoader.load_sample_data(
                                     "customer_inquiry")
                                 st.rerun()
 
-                            # If the session state flag is set, use the loaded content
                             if st.session_state.get(f"sample_{var}", False):
                                 variables[var] = st.session_state.get(
                                     f"{var}_content", "")
@@ -558,7 +508,6 @@ class PromptEngineeringPage:
                             variables[var] = st.text_area(
                                 f"Enter {var}", "", height=200, key=f"{var}_textarea")
 
-                # Prompt strategy selection
                 st.subheader("Prompt Strategy")
                 strategy_type = st.selectbox(
                     "Select Prompt Strategy",
@@ -571,8 +520,6 @@ class PromptEngineeringPage:
         with col2:
             st.subheader("Generation Settings")
 
-            # Model parameters
-            # Get default max tokens from session state if running on CPU
             default_max_tokens = st.session_state.get(
                 "default_max_tokens", 512)
 
@@ -581,36 +528,32 @@ class PromptEngineeringPage:
             max_tokens = st.slider("Max Tokens", 64, 4096, default_max_tokens, 64,
                                    help="Maximum number of tokens to generate. Lower values are faster, especially on CPU.")
 
-            # CPU optimization notice
             is_cpu_optimized = st.session_state.get("is_cpu_optimized", False)
             if is_cpu_optimized:
                 st.info(
                     "ℹ️ Running with CPU optimizations. Generation will be slower but more stable.")
 
-                # For CPU, add option for greedy decoding
                 use_greedy = st.checkbox(
                     "Use greedy decoding",
                     value=False,
                     help="Faster but less creative text generation. Recommended for CPU."
                 )
 
-                # Additional warning for CPU users
                 st.warning(
                     "⚠️ CPU generation can take several minutes. For best results, keep your prompts short and max tokens small.")
 
-            # Generation button
             generate_button = st.button("Generate Output")
 
             if generate_button:
-                # Check if all required variables are provided
+
                 if all(v.strip() for v in variables.values()):
                     try:
-                        # Create strategy and prepare generation
+
                         with st.spinner("Preparing prompt..."):
-                            # Create prompt strategy
+
                             strategy_kwargs = {}
                             if strategy_type == "few_shot":
-                                # Simple example for few-shot learning
+
                                 if task_type == "policy_summary":
                                     strategy_kwargs = {
                                         "examples": [
@@ -632,7 +575,7 @@ class PromptEngineeringPage:
                                         "example_template": "Claim: {claim}\nResponse: {response}"
                                     }
                             elif strategy_type == "chain_of_thought":
-                                # Simple example for chain-of-thought reasoning
+
                                 if task_type == "policy_summary":
                                     strategy_kwargs = {
                                         "cot_examples": [
@@ -648,7 +591,6 @@ class PromptEngineeringPage:
                             strategy = create_prompt_strategy(
                                 strategy_type, **strategy_kwargs)
 
-                            # Apply prompt strategy to format the input
                             if strategy_type == "zero_shot":
                                 formatted_prompt = selected_template.template.format(
                                     **variables)
@@ -656,66 +598,57 @@ class PromptEngineeringPage:
                                 formatted_prompt = strategy.apply(
                                     variables, selected_template.template)
 
-                            # Generate text with CPU optimizations if enabled
                             generation_params = {
                                 "max_length": max_tokens,
                                 "temperature": temperature,
                                 "top_p": 0.9,
                                 "top_k": 50,
                                 "num_return_sequences": 1,
-                                # Use greedy decoding if on CPU and selected
+
                                 "do_sample": not (is_cpu_optimized and locals().get('use_greedy', False)),
-                                # Get timeout from session state
+
                                 "timeout_seconds": st.session_state.get("generation_timeout", 60)
                             }
 
-                            # For CPU optimization, adjust parameters
                             if is_cpu_optimized:
                                 if locals().get('use_greedy', False):
-                                    # Greedy decoding for faster CPU inference
+
                                     generation_params["temperature"] = 1.0
                                     generation_params["top_p"] = 1.0
                                     generation_params["top_k"] = 1
 
-                        # Now do the actual generation (outside the first spinner)
                         with st.spinner("Generating text... Please wait."):
-                            # Add extra info for CPU users
+
                             if is_cpu_optimized:
                                 st.info(
                                     f"Generating with timeout of {generation_params['timeout_seconds']} seconds. CPU generation may take a while...")
 
-                            # Add a Streamlit progress indicator
                             progress_placeholder = st.empty()
                             progress_bar = progress_placeholder.progress(0.0)
                             status_text = st.empty()
 
-                            # Run actual generation
                             status_text.text(
                                 "Running model inference... (this may take a while on CPU)")
 
-                            # Manual progress indication for CPU mode
                             if is_cpu_optimized:
-                                # Just set progress at 50% and provide clear message
+
                                 progress_bar.progress(0.5)
                                 status_text.text(
                                     "Generating text... This may take several minutes on CPU. Please be patient.")
 
                             try:
-                                # Directly run the generation
+
                                 generation_start_time = time.time()
 
-                                # Create a container for streaming output
                                 output_container = st.empty()
                                 generated_text = ""
 
-                                # Define callback function for streaming
                                 def streaming_callback(token):
                                     nonlocal generated_text
                                     generated_text += token
                                     output_container.markdown(
                                         f"**Generated Output:**\n\n{generated_text}")
 
-                                # Run the streaming generation
                                 full_text = st.session_state.inference_engine.generate_with_streaming(
                                     formatted_prompt,
                                     callback=streaming_callback,
@@ -727,27 +660,21 @@ class PromptEngineeringPage:
                                     timeout_seconds=generation_params["timeout_seconds"]
                                 )
 
-                                # Generation complete - set progress to 100%
                                 progress_bar.progress(1.0)
 
-                                # Calculate elapsed time
                                 elapsed_time = time.time() - generation_start_time
                                 status_text.text(
                                     f"Generation completed in {elapsed_time:.2f} seconds")
 
-                                # Clear progress indicators after short delay
-                                # Brief pause to show completion
                                 time.sleep(0.5)
                                 progress_placeholder.empty()
                                 status_text.empty()
 
-                                # Check if it's an error message (returned by our custom timeout handler)
                                 if full_text.startswith("Generation timed out") or full_text.startswith("Generation error"):
                                     st.error(full_text)
                                     st.info(
                                         "Try reducing the max tokens, using a simpler prompt, or increasing the timeout setting in the model selection page.")
 
-                                    # CPU-specific suggestions
                                     if is_cpu_optimized:
                                         st.warning(
                                             "CPU-specific suggestions:")
@@ -758,7 +685,7 @@ class PromptEngineeringPage:
                                         - Try a smaller model like Phi-2 or TinyLLaMA
                                         """)
                                 else:
-                                    # Save the generated text to session state
+
                                     if "generated_outputs" not in st.session_state:
                                         st.session_state.generated_outputs = []
 
@@ -766,7 +693,6 @@ class PromptEngineeringPage:
                                     st.info(
                                         f"Generation completed in {generation_time:.2f} seconds")
 
-                                    # Save the generated output
                                     st.session_state.generated_outputs.append({
                                         "template_name": selected_template_name,
                                         "task_type": task_type,
@@ -778,7 +704,6 @@ class PromptEngineeringPage:
                                         "generation_time": generation_time
                                     })
 
-                                    # Show evaluation button
                                     if st.button("Evaluate Output"):
                                         SessionState.set_tab("evaluation")
                                         st.rerun()
@@ -796,7 +721,6 @@ class PromptEngineeringPage:
                 else:
                     st.error("Please fill in all required variables.")
 
-            # Show previous outputs
             if st.session_state.generated_outputs:
                 st.subheader("Previous Outputs")
 
@@ -807,13 +731,11 @@ class PromptEngineeringPage:
                         st.text_area(
                             f"Generated Text {idx+1}", output['output'], height=150)
 
-                        # Option to evaluate this output
                         if st.button(f"Evaluate Output {idx+1}"):
-                            # Set the output to evaluate
+
                             st.session_state.current_output_idx = idx
                             SessionState.set_tab("evaluation")
                             st.rerun()
-
 
 class EvaluationPage:
     """Class to handle the evaluation page UI and logic."""
@@ -829,10 +751,8 @@ class EvaluationPage:
                 st.rerun()
             return
 
-        # Get metrics manager
         metrics_manager = get_metrics_manager()
 
-        # Current output to evaluate
         current_idx = getattr(st.session_state, "current_output_idx", len(
             st.session_state.generated_outputs) - 1)
         current_output = st.session_state.generated_outputs[current_idx]
@@ -845,13 +765,11 @@ class EvaluationPage:
             st.write(f"Template: {current_output['template_name']}")
             st.write(f"Strategy: {current_output['strategy_type']}")
 
-            # Display the input variables and output
             st.text_area("Input Variables", str(
                 current_output['input_variables']), height=150)
             st.text_area("Generated Output",
                          current_output['output'], height=300)
 
-            # Reference text input for comparison-based metrics
             st.subheader("Reference Text (Optional)")
             reference_text = st.text_area("Enter reference text for comparison", "", height=200,
                                           help="Provide a reference text to compare the generated output against")
@@ -859,7 +777,6 @@ class EvaluationPage:
         with col2:
             st.subheader("Evaluation Metrics")
 
-            # Select metrics to use
             available_metrics = metrics_manager.list_metrics()
             selected_metrics = st.multiselect(
                 "Select metrics to use",
@@ -867,10 +784,8 @@ class EvaluationPage:
                 default=["relevance", "completeness", "complexity"]
             )
 
-            # Additional context for evaluation
             st.subheader("Additional Context")
 
-            # Context based on task type
             context = {}
 
             if current_output['task_type'] == "policy_summary":
@@ -915,11 +830,10 @@ class EvaluationPage:
                 context["prohibited_phrases"] = [s.strip()
                                                  for s in prohibited_phrases.split(",")]
 
-            # Evaluate button
             if st.button("Run Evaluation"):
                 with st.spinner("Evaluating..."):
                     try:
-                        # Run evaluation with selected metrics
+
                         evaluation_results = metrics_manager.evaluate(
                             generated_text=current_output['output'],
                             metric_names=selected_metrics,
@@ -927,27 +841,23 @@ class EvaluationPage:
                             context=context
                         )
 
-                        # Store results
                         st.session_state.evaluation_results[current_idx] = {
                             "metrics": [result.as_dict() for result in evaluation_results.values()],
                             "reference_text": reference_text,
                             "context": context
                         }
 
-                        # Show success message
                         st.success("Evaluation complete!")
 
                     except Exception as e:
                         st.error(f"Error during evaluation: {str(e)}")
                         logger.error(f"Error during evaluation: {str(e)}")
 
-            # Display evaluation results if available
             if current_idx in st.session_state.evaluation_results:
                 st.subheader("Evaluation Results")
 
                 results = st.session_state.evaluation_results[current_idx]
 
-                # Create a DataFrame for the results
                 results_df = pd.DataFrame([
                     {
                         "Metric": result["metric_name"],
@@ -958,11 +868,9 @@ class EvaluationPage:
                     for result in results["metrics"]
                 ])
 
-                # Display the results table
                 results_df = prepare_dataframe_for_display(results_df)
                 st.dataframe(results_df)
 
-                # Create a bar chart of the normalized scores
                 fig = px.bar(
                     results_df,
                     x="Metric",
@@ -974,7 +882,6 @@ class EvaluationPage:
                 )
                 st.plotly_chart(fig)
 
-                # Show detailed results in expanders
                 for result in results["metrics"]:
                     with st.expander(f"Detailed Results for {result['metric_name']}"):
                         st.write(
@@ -986,7 +893,6 @@ class EvaluationPage:
                             st.write("Details:")
                             st.json(result["details"])
 
-                # Export results button
                 if st.button("Export Results"):
                     timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
                     export_path = f"evaluation_results_{timestamp}.json"
@@ -1004,7 +910,6 @@ class EvaluationPage:
                         st.error(f"Error exporting results: {str(e)}")
                         logger.error(f"Error exporting results: {str(e)}")
 
-
 class BenchmarksPage:
     """Class to handle the benchmarks page UI and logic."""
 
@@ -1019,12 +924,10 @@ class BenchmarksPage:
                 st.rerun()
             return
 
-        # Get benchmark manager
         benchmark_manager = get_benchmark_manager()
 
-        # Load or create sample benchmarks if they don't exist
         if not benchmark_manager.list_benchmarks():
-            # Add debug logging
+
             logger.info(
                 f"No benchmarks found in directory: {benchmark_manager.benchmarks_dir}")
 
@@ -1033,13 +936,11 @@ class BenchmarksPage:
                     try:
                         logger.info("Creating sample benchmarks...")
 
-                        # Ensure the benchmark directory exists
                         os.makedirs(
                             benchmark_manager.benchmarks_dir, exist_ok=True)
                         logger.info(
                             f"Ensured benchmark directory exists: {benchmark_manager.benchmarks_dir}")
 
-                        # Create policy summary benchmark
                         policy_benchmark = create_policy_summary_benchmark()
                         if policy_benchmark is None:
                             raise ValueError(
@@ -1048,14 +949,12 @@ class BenchmarksPage:
                             f"Created policy benchmark: {policy_benchmark.name} with {len(policy_benchmark.examples)} examples")
                         benchmark_manager.benchmarks[policy_benchmark.name] = policy_benchmark
 
-                        # Save the benchmark to disk
                         benchmark_path = os.path.join(
                             benchmark_manager.benchmarks_dir, f"{policy_benchmark.name}.json")
                         policy_benchmark.save(benchmark_path)
                         logger.info(
                             f"Saved policy benchmark to {benchmark_path}")
 
-                        # Create claim response benchmark
                         claim_benchmark = create_claim_response_benchmark()
                         if claim_benchmark is None:
                             raise ValueError(
@@ -1064,7 +963,6 @@ class BenchmarksPage:
                             f"Created claim benchmark: {claim_benchmark.name} with {len(claim_benchmark.examples)} examples")
                         benchmark_manager.benchmarks[claim_benchmark.name] = claim_benchmark
 
-                        # Save the benchmark to disk
                         benchmark_path = os.path.join(
                             benchmark_manager.benchmarks_dir, f"{claim_benchmark.name}.json")
                         claim_benchmark.save(benchmark_path)
@@ -1084,13 +982,11 @@ class BenchmarksPage:
             with col1:
                 st.subheader("Available Benchmarks")
 
-                # List available benchmarks
                 benchmarks = benchmark_manager.list_benchmarks()
                 benchmark_names = [b["name"] for b in benchmarks]
                 selected_benchmark = st.selectbox(
                     "Select Benchmark", benchmark_names)
 
-                # Display benchmark details
                 if selected_benchmark:
                     benchmark = benchmark_manager.get_benchmark(
                         selected_benchmark)
@@ -1102,7 +998,6 @@ class BenchmarksPage:
                             f"Number of Examples: {len(benchmark.examples)}")
                         st.write(f"Metrics: {', '.join(benchmark.metrics)}")
 
-                        # Option to view examples
                         with st.expander("View Examples"):
                             for idx, example in enumerate(benchmark.examples):
                                 st.write(f"Example {idx+1}: {example.id}")
@@ -1111,11 +1006,10 @@ class BenchmarksPage:
                                 st.text_area(
                                     f"Reference Output {idx+1}", example.reference_output, height=150)
 
-                        # Run benchmark button
                         if st.button("Run Benchmark"):
                             with st.spinner(f"Running benchmark {selected_benchmark}..."):
                                 try:
-                                    # Create a function to generate output
+
                                     def generate_output(input_text):
                                         generation_params = {
                                             "max_length": 512,
@@ -1125,20 +1019,17 @@ class BenchmarksPage:
                                             "do_sample": True
                                         }
 
-                                        # For streaming display during benchmark runs
                                         if st.checkbox("Show generation in real-time", value=True):
-                                            # Create a container for streaming output
+
                                             output_container = st.empty()
                                             generated_text = ""
 
-                                            # Define callback function for streaming
                                             def streaming_callback(token):
                                                 nonlocal generated_text
                                                 generated_text += token
                                                 output_container.markdown(
                                                     f"**Generating:**\n\n{generated_text}")
 
-                                            # Run the streaming generation
                                             full_text = st.session_state.inference_engine.generate_with_streaming(
                                                 input_text,
                                                 callback=streaming_callback,
@@ -1151,7 +1042,7 @@ class BenchmarksPage:
 
                                             return full_text
                                         else:
-                                            # Use regular generation if streaming is not selected
+
                                             generated_texts = st.session_state.inference_engine.generate(
                                                 input_text,
                                                 **generation_params
@@ -1159,7 +1050,6 @@ class BenchmarksPage:
 
                                             return generated_texts[0] if generated_texts else ""
 
-                                    # Run the benchmark
                                     model_id = st.session_state.model.__class__.__name__
                                     result = benchmark_manager.run_benchmark(
                                         benchmark_name=selected_benchmark,
@@ -1167,7 +1057,6 @@ class BenchmarksPage:
                                         generate_fn=generate_output
                                     )
 
-                                    # Store result in session state
                                     if "benchmark_results" not in st.session_state:
                                         st.session_state.benchmark_results = {}
 
@@ -1185,9 +1074,8 @@ class BenchmarksPage:
             with col2:
                 st.subheader("Benchmark Results")
 
-                # Display benchmark results if available
                 if hasattr(st.session_state, "benchmark_results") and st.session_state.benchmark_results:
-                    # Select result to display
+
                     result_keys = list(
                         st.session_state.benchmark_results.keys())
                     selected_result = st.selectbox(
@@ -1196,25 +1084,20 @@ class BenchmarksPage:
                     if selected_result:
                         result = st.session_state.benchmark_results[selected_result]
 
-                        # Display aggregate scores
                         st.write("Aggregate Scores:")
 
-                        # Create a DataFrame for the aggregate scores
                         scores_df = pd.DataFrame([
                             {"Metric": metric, "Score": score}
                             for metric, score in result.aggregate_scores.items()
                         ])
 
-                        # Display the scores table
                         scores_df = prepare_dataframe_for_display(scores_df)
                         st.dataframe(scores_df)
 
-                        # Create a radar chart of the scores
                         metrics = [
                             m for m in result.aggregate_scores.keys() if m != "overall"]
                         scores = [result.aggregate_scores[m] for m in metrics]
 
-                        # Radar chart
                         fig = go.Figure()
 
                         fig.add_trace(go.Scatterpolar(
@@ -1236,7 +1119,6 @@ class BenchmarksPage:
 
                         st.plotly_chart(fig)
 
-                        # Export button
                         if st.button("Export Benchmark Results"):
                             timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
                             export_path = f"benchmark_results_{selected_result}_{timestamp}.json"
@@ -1253,7 +1135,6 @@ class BenchmarksPage:
                                 logger.error(
                                     f"Error exporting results: {str(e)}")
 
-                        # Detailed results
                         with st.expander("View Detailed Results"):
                             for idx, example_result in enumerate(result.results):
                                 st.write(
@@ -1269,14 +1150,12 @@ class BenchmarksPage:
                                     st.text_area(
                                         f"Reference Output {idx+1}", example_result['reference_output'], height=150)
 
-                                # Metrics for this example
                                 st.write("Metrics:")
                                 for metric, score in example_result['metrics'].items():
                                     st.write(f"{metric}: {score:.3f}")
                 else:
                     st.info(
                         "No benchmark results available. Run a benchmark first.")
-
 
 class ModelComparisonPage:
     """Class to handle the model comparison page UI and logic."""
@@ -1285,7 +1164,6 @@ class ModelComparisonPage:
         """Render the model comparison page."""
         st.header("Model Comparison")
 
-        # Check if there are benchmark results to compare
         if not hasattr(st.session_state, "benchmark_results") or not st.session_state.benchmark_results:
             st.warning("No benchmark results available. Run benchmarks first.")
             if st.button("Go to Benchmarks"):
@@ -1293,42 +1171,35 @@ class ModelComparisonPage:
                 st.rerun()
             return
 
-        # Get benchmark manager
         benchmark_manager = get_benchmark_manager()
 
-        # List available benchmark results
         result_keys = list(st.session_state.benchmark_results.keys())
 
         st.subheader("Compare Models")
         st.write("Load more models and run benchmarks to compare their performance.")
 
-        # Display comparison if multiple results exist
         if len(result_keys) > 1:
-            # Select benchmark to compare
+
             selected_benchmark = st.selectbox("Select Benchmark", result_keys)
 
-            # Get results for the selected benchmark
             results = {
                 result.model_id: result
                 for key, result in st.session_state.benchmark_results.items()
                 if key == selected_benchmark
             }
 
-            # Compare models
             comparison_df = benchmark_manager.compare_models(
                 selected_benchmark, results)
 
-            # Display comparison
             st.subheader(f"Comparison for {selected_benchmark}")
             comparison_df = prepare_dataframe_for_display(comparison_df)
             st.dataframe(comparison_df)
 
-            # Create comparison charts
             metrics = [
                 col for col in comparison_df.columns if col.endswith("_score")]
 
             if metrics:
-                # Bar chart for overall score
+
                 fig1 = px.bar(
                     comparison_df,
                     x="model_id",
@@ -1340,7 +1211,6 @@ class ModelComparisonPage:
                 )
                 st.plotly_chart(fig1)
 
-                # Bar chart for individual metrics
                 fig2 = px.bar(
                     comparison_df.melt(
                         id_vars=["model_id"],
@@ -1356,7 +1226,6 @@ class ModelComparisonPage:
                 )
                 st.plotly_chart(fig2)
 
-                # Radar chart comparison
                 metric_names = [m.replace("_score", "") for m in metrics]
 
                 fig3 = go.Figure()
@@ -1387,7 +1256,6 @@ class ModelComparisonPage:
             st.info(
                 "Run benchmarks with at least two different models to enable comparison.")
 
-
 class SettingsPage:
     """Class to handle the settings page UI and logic."""
 
@@ -1400,29 +1268,24 @@ class SettingsPage:
         with col1:
             st.subheader("Application Settings")
 
-            # Theme setting
             theme = st.selectbox(
                 "Application Theme",
                 ["Light", "Dark"],
                 index=1
             )
 
-            # Cache setting
             cache_models = st.checkbox("Cache Models", value=True,
                                        help="Keep models in memory between sessions")
 
-            # Debug mode
             debug_mode = st.checkbox("Debug Mode", value=False,
                                      help="Show additional debugging information")
 
-            # Save settings button
             if st.button("Save Settings"):
                 st.success("Settings saved successfully!")
 
         with col2:
             st.subheader("System Information")
 
-            # Display system information
             torch = TorchUtils.get_torch()
             system_info = {
                 "Python Version": os.sys.version.split()[0],
@@ -1436,7 +1299,6 @@ class SettingsPage:
             for key, value in system_info.items():
                 st.text(f"{key}: {value}")
 
-            # Memory usage for loaded model
             if st.session_state.model is not None:
                 mem_usage = "Unknown"
                 try:
@@ -1447,19 +1309,17 @@ class SettingsPage:
 
                 st.text(f"Model Memory Usage: {mem_usage}")
 
-            # Clear session button
             if st.button("Clear Session"):
-                # Reset session state
+
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
 
                 st.success("Session cleared successfully!")
                 st.rerun()
 
-
 def main():
     """Main function to run the Streamlit app."""
-    # Set page configuration
+
     st.set_page_config(
         page_title="Insurance LLM Framework",
         page_icon="🏠",
@@ -1467,15 +1327,12 @@ def main():
         initial_sidebar_state="expanded"
     )
 
-    # Initialize session state
     SessionState.initialize()
 
-    # Sidebar navigation
     st.sidebar.title("Insurance LLM Framework")
     st.sidebar.image(
         "https://cdn-icons-png.flaticon.com/512/3448/3448502.png", width=100)
 
-    # Navigation options
     nav_options = {
         "Model Selection": "model_selection",
         "Prompt Engineering": "prompt_engineering",
@@ -1490,7 +1347,6 @@ def main():
             SessionState.set_tab(tab)
             st.rerun()
 
-    # Render the selected page
     current_tab = st.session_state.current_tab
 
     if current_tab == "model_selection":
@@ -1512,14 +1368,12 @@ def main():
         settings_page = SettingsPage()
         settings_page.render()
 
-    # Footer
     st.sidebar.markdown("---")
     st.sidebar.info(
         "Open-Source Prompt Engineering and Evaluation Framework for Insurance Domain Applications. "
         "This project helps insurance professionals leverage open-source LLMs for tasks such as "
         "policy summarization, claim processing, and customer communication."
     )
-
 
 if __name__ == "__main__":
     main()

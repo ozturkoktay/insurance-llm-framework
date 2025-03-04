@@ -14,16 +14,13 @@ import yaml
 
 from pathlib import Path
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-# Default templates directory
 DEFAULT_TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "templates")
-
 
 class PromptTemplate:
     """Class representing a single prompt template."""
@@ -98,7 +95,6 @@ class PromptTemplate:
         except KeyError as e:
             logger.error(f"Missing template variable: {str(e)}")
             raise ValueError(f"Missing template variable: {str(e)}")
-
 
 class PromptLibrary:
     """
@@ -208,10 +204,8 @@ class PromptLibrary:
         if name not in self.templates:
             return False
 
-        # Remove from memory
         del self.templates[name]
 
-        # Remove from disk if exists
         file_path = Path(self.templates_dir) / f"{name}.json"
         if file_path.exists():
             try:
@@ -272,12 +266,10 @@ class PromptLibrary:
         """
         return list(set(t.task_type for t in self.templates.values()))
 
-
-# Initialize default insurance prompt templates
 def create_default_templates():
     """Create default insurance prompt templates."""
     templates = [
-        # Policy summarization template
+
         PromptTemplate(
             name="policy_summary_concise",
             template=(
@@ -293,7 +285,6 @@ def create_default_templates():
             strategy_type="zero_shot"
         ),
 
-        # Detailed policy summary template
         PromptTemplate(
             name="policy_summary_detailed",
             template=(
@@ -314,7 +305,6 @@ def create_default_templates():
             strategy_type="zero_shot"
         ),
 
-        # Claim response template
         PromptTemplate(
             name="claim_response_standard",
             template=(
@@ -331,7 +321,6 @@ def create_default_templates():
             strategy_type="few_shot"
         ),
 
-        # Claim approval response template
         PromptTemplate(
             name="claim_response_approval",
             template=(
@@ -352,7 +341,6 @@ def create_default_templates():
             strategy_type="zero_shot"
         ),
 
-        # Claim denial response template
         PromptTemplate(
             name="claim_response_denial",
             template=(
@@ -374,7 +362,6 @@ def create_default_templates():
             strategy_type="zero_shot"
         ),
 
-        # Customer inquiry response template
         PromptTemplate(
             name="customer_inquiry_response",
             template=(
@@ -390,7 +377,6 @@ def create_default_templates():
             strategy_type="zero_shot"
         ),
 
-        # Detailed customer inquiry response template
         PromptTemplate(
             name="customer_inquiry_detailed",
             template=(
@@ -411,7 +397,6 @@ def create_default_templates():
             strategy_type="zero_shot"
         ),
 
-        # Risk assessment template
         PromptTemplate(
             name="risk_assessment_report",
             template=(
@@ -429,7 +414,6 @@ def create_default_templates():
             strategy_type="chain_of_thought"
         ),
 
-        # Detailed risk assessment template
         PromptTemplate(
             name="risk_assessment_detailed",
             template=(
@@ -450,7 +434,6 @@ def create_default_templates():
             strategy_type="zero_shot"
         ),
 
-        # Policy comparison template
         PromptTemplate(
             name="policy_comparison",
             template=(
@@ -466,7 +449,6 @@ def create_default_templates():
             strategy_type="zero_shot"
         ),
 
-        # Compliance checking template
         PromptTemplate(
             name="compliance_check",
             template=(
@@ -482,7 +464,6 @@ def create_default_templates():
             strategy_type="zero_shot"
         ),
 
-        # Training material generation template
         PromptTemplate(
             name="training_material",
             template=(
@@ -500,22 +481,18 @@ def create_default_templates():
         ),
     ]
 
-    # Create templates directory if it doesn't exist
     templates_dir = Path(DEFAULT_TEMPLATES_DIR)
     templates_dir.mkdir(parents=True, exist_ok=True)
 
-    # Save templates
     for template in templates:
         file_path = templates_dir / f"{template.name}.json"
         with open(file_path, "w") as f:
             json.dump(template.to_dict(), f, indent=2)
         logger.info(f"Created default template: {template.name}")
 
-
-# Create a global prompt library instance
 def get_prompt_library():
     """Get or create the global prompt library instance."""
-    # Create default templates if the directory doesn't exist or is empty
+
     templates_dir = Path(DEFAULT_TEMPLATES_DIR)
     if not templates_dir.exists() or not any(templates_dir.glob("*.json")):
         create_default_templates()

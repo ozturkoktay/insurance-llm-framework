@@ -21,21 +21,17 @@ from peft import PeftModel, PeftConfig
 from accelerate import init_empty_weights
 from huggingface_hub import snapshot_download
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-
 class ModelConfig:
     """Configuration for model repositories and settings."""
 
-    # Get HuggingFace token from environment
     HF_TOKEN = os.environ.get("HF_TOKEN", None)
 
-    # Define CPU-friendly models
     CPU_FRIENDLY_MODELS = {
         "tiny-llama-1b": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
         "phi-1.5": "microsoft/phi-1_5",
@@ -44,7 +40,6 @@ class ModelConfig:
         "llama2-7b-chat-bnb-4bit": "TheBloke/Llama-2-7B-Chat-GGUF",
     }
 
-    # Model repositories
     MODEL_REPOS = {
         "llama2-7b": "meta-llama/Llama-2-7b-hf",
         "llama2-13b": "meta-llama/Llama-2-13b-hf",
@@ -57,7 +52,6 @@ class ModelConfig:
         **CPU_FRIENDLY_MODELS  # Add CPU-friendly models to the repository
     }
 
-    # Model details
     MODEL_DETAILS = {
         "llama2-7b": {
             "description": "LLaMA-2 7B base model",
@@ -172,7 +166,6 @@ class ModelConfig:
         """Get the repository for a model ID."""
         return cls.MODEL_REPOS.get(model_id, model_id)
 
-
 class ModelLoader:
     """Class for loading and configuring LLM models."""
 
@@ -232,43 +225,34 @@ class ModelLoader:
         logger.info(
             f"Loading model {model_id} with quantization={quantization}, device_map={device_map}")
 
-        # Clean up memory
         cls._cleanup_memory()
 
-        # Get the repository for the model
         repo_id = ModelConfig.get_model_repo(model_id)
 
-        # Get quantization config
         quantization_config = cls._get_quantization_config(quantization)
 
-        # Determine if this is a CPU-friendly model
         is_cpu_optimized = model_id in ModelConfig.get_cpu_friendly_models() or cpu_optimize
 
-        # Special handling for CPU optimization
         if cpu_optimize and device_map == "cpu":
             logger.info("Applying CPU optimizations")
 
-            # For small models on CPU, avoid quantization for better performance
             if model_id in ["phi-1.5", "phi-2", "tiny-llama-1b"] and quantization:
                 logger.info(
                     f"Disabling quantization for {model_id} on CPU for better performance")
                 quantization_config = None
 
-        # Load tokenizer first
         tokenizer = AutoTokenizer.from_pretrained(
             repo_id,
             token=ModelConfig.HF_TOKEN,
             trust_remote_code=True
         )
 
-        # Ensure padding token is set
         if tokenizer.pad_token is None:
             if tokenizer.eos_token is not None:
                 tokenizer.pad_token = tokenizer.eos_token
             else:
                 tokenizer.pad_token = tokenizer.eos_token = "</s>"
 
-        # Load model with appropriate configuration
         model = AutoModelForCausalLM.from_pretrained(
             repo_id,
             token=ModelConfig.HF_TOKEN,
@@ -278,16 +262,13 @@ class ModelLoader:
             **kwargs
         )
 
-        # Apply CPU optimizations if needed
         if cpu_optimize and device_map == "cpu":
             logger.info("Applying additional CPU optimizations to model")
 
-            # Use smaller data types for CPU
             if hasattr(model, "to") and not quantization:
                 model = model.to(torch.float32)  # Use float32 for CPU
 
         return model, tokenizer, is_cpu_optimized
-
 
 class PipelineFactory:
     """Factory class for creating text generation pipelines."""
@@ -309,7 +290,7 @@ class PipelineFactory:
         Returns:
             Text generation pipeline
         """
-        # Set up pipeline parameters
+
         pipeline_kwargs = {
             "model": model,
             "tokenizer": tokenizer,
@@ -317,33 +298,25 @@ class PipelineFactory:
             "task": "text-generation",
         }
 
-        # CPU optimizations for the pipeline
         if cpu_optimized:
             logger.info("Creating CPU-optimized text generation pipeline")
             pipeline_kwargs["batch_size"] = 1  # Smaller batch size for CPU
 
-        # Create the pipeline
         text_pipeline = pipeline(**pipeline_kwargs)
 
         return text_pipeline
-
-
-# Module-level functions that use the classes above
 
 def get_supported_models() -> List[str]:
     """Get a list of supported model identifiers."""
     return ModelConfig.get_supported_models()
 
-
 def get_cpu_friendly_models() -> List[str]:
     """Get a list of models that are optimized for CPU usage."""
     return ModelConfig.get_cpu_friendly_models()
 
-
 def get_model_details() -> Dict[str, Dict[str, str]]:
     """Get details about available models."""
     return ModelConfig.get_model_details()
-
 
 def load_model(
     model_id: str,
@@ -372,7 +345,6 @@ def load_model(
         cpu_optimize=cpu_optimize,
         **kwargs
     )
-
 
 def create_text_generation_pipeline(
     model: Any,

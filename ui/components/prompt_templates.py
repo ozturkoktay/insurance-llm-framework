@@ -15,22 +15,18 @@ from typing import Dict, Any, Optional, List
 
 logger = logging.getLogger(__name__)
 
-# Default template directory
 TEMPLATE_DIR = os.path.join(os.getcwd(), "templates")
-
 
 def get_template_directory() -> str:
     """Get the directory where templates are stored."""
-    # Create template directory if it doesn't exist
+
     if not os.path.exists(TEMPLATE_DIR):
         os.makedirs(TEMPLATE_DIR)
         logger.info(f"Created template directory at {TEMPLATE_DIR}")
 
-        # Create sample templates
         create_sample_templates()
 
     return TEMPLATE_DIR
-
 
 def create_sample_templates() -> None:
     """Create sample templates for the framework."""
@@ -179,14 +175,12 @@ RESPONSE:""",
         }
     ]
 
-    # Save sample templates
     for template in sample_templates:
         template_path = os.path.join(TEMPLATE_DIR, f"{template['id']}.json")
         with open(template_path, "w") as f:
             json.dump(template, f, indent=2)
 
         logger.info(f"Created sample template: {template['name']}")
-
 
 def load_templates() -> List[Dict[str, Any]]:
     """
@@ -198,7 +192,6 @@ def load_templates() -> List[Dict[str, Any]]:
     template_dir = get_template_directory()
     templates = []
 
-    # List all JSON files in template directory
     template_files = [f for f in os.listdir(
         template_dir) if f.endswith(".json")]
 
@@ -210,11 +203,9 @@ def load_templates() -> List[Dict[str, Any]]:
         except Exception as e:
             logger.error(f"Error loading template {file}: {str(e)}")
 
-    # Sort templates by name
     templates.sort(key=lambda x: x.get("name", ""))
 
     return templates
-
 
 def save_template(template: Dict[str, Any]) -> bool:
     """
@@ -229,18 +220,15 @@ def save_template(template: Dict[str, Any]) -> bool:
     try:
         template_dir = get_template_directory()
 
-        # Ensure template has an ID
         if "id" not in template:
             template["id"] = str(uuid.uuid4())
 
-        # Add timestamps
         if "created_at" not in template:
             template["created_at"] = datetime.now().strftime(
                 "%Y-%m-%dT%H:%M:%SZ")
 
         template["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        # Save template to file
         template_path = os.path.join(template_dir, f"{template['id']}.json")
         with open(template_path, "w") as f:
             json.dump(template, f, indent=2)
@@ -250,7 +238,6 @@ def save_template(template: Dict[str, Any]) -> bool:
     except Exception as e:
         logger.error(f"Error saving template: {str(e)}")
         return False
-
 
 def delete_template(template_id: str) -> bool:
     """
@@ -277,7 +264,6 @@ def delete_template(template_id: str) -> bool:
         logger.error(f"Error deleting template: {str(e)}")
         return False
 
-
 def template_selector() -> Optional[Dict[str, Any]]:
     """
     Display a UI for selecting a prompt template.
@@ -285,14 +271,13 @@ def template_selector() -> Optional[Dict[str, Any]]:
     Returns:
         Selected template dictionary, or None if no template is selected
     """
-    # Load all templates
+
     templates = load_templates()
 
     if not templates:
         st.info("No templates found. Create a new template to get started.")
         return None
 
-    # Create filter options
     col1, col2, col3 = st.columns([1, 1, 1])
 
     with col1:
@@ -310,7 +295,6 @@ def template_selector() -> Optional[Dict[str, Any]]:
             "All"] + sorted(list(set(t.get("insurance_domain", "Other") for t in templates)))
         selected_domain = st.selectbox("Filter by Domain", options=domains)
 
-    # Apply filters
     filtered_templates = templates
     if selected_task != "All":
         filtered_templates = [t for t in filtered_templates if t.get(
@@ -326,7 +310,6 @@ def template_selector() -> Optional[Dict[str, Any]]:
         st.warning("No templates match the selected filters.")
         return None
 
-    # Create a table of templates
     template_data = [
         {
             "Name": t.get("name", "Unnamed Template"),
@@ -341,17 +324,14 @@ def template_selector() -> Optional[Dict[str, Any]]:
     template_df = pd.DataFrame(template_data)
     st.dataframe(template_df, use_container_width=True, hide_index=True)
 
-    # Template selection
     template_names = [t.get("name", f"Template {i}")
                       for i, t in enumerate(filtered_templates)]
     selected_name = st.selectbox("Select a Template", options=template_names)
 
-    # Find the selected template
     selected_template = next(
         (t for t in filtered_templates if t.get("name") == selected_name), None)
 
     return selected_template
-
 
 def template_preview(template: Dict[str, Any]) -> None:
     """
@@ -363,7 +343,6 @@ def template_preview(template: Dict[str, Any]) -> None:
     st.markdown(f"### {template.get('name', 'Unnamed Template')}")
     st.markdown(template.get("description", "No description provided."))
 
-    # Display template metadata
     col1, col2, col3 = st.columns([1, 1, 1])
 
     with col1:
@@ -378,33 +357,27 @@ def template_preview(template: Dict[str, Any]) -> None:
         st.markdown(
             f"**Domain:** {template.get('insurance_domain', 'Not specified').capitalize()}")
 
-    # Display template content
     st.markdown("#### Template Content")
     st.code(template.get(
         "template", "Template content not available."), language="text")
 
-    # Display input variables
     if "input_variables" in template and template["input_variables"]:
         st.markdown("#### Input Variables")
         for var in template["input_variables"]:
             st.markdown(f"- `{var}`")
 
-    # Display tags if available
     if "tags" in template and template["tags"]:
         st.markdown("#### Tags")
         tags_html = " ".join(
             [f"<span style='background-color: #f0f2f6; padding: 0.2rem 0.5rem; border-radius: 0.5rem; margin-right: 0.5rem;'>{tag}</span>" for tag in template["tags"]])
         st.markdown(tags_html, unsafe_allow_html=True)
 
-    # Try button
     if st.button("Try this Template", key="try_template"):
-        # Set this template as active
+
         st.session_state.active_template = template
 
-        # Provide feedback
         st.success(
             f"Template '{template.get('name')}' is now active. Go to the Text Generation page to use it.")
-
 
 def template_editor(template: Optional[Dict[str, Any]] = None) -> None:
     """
@@ -413,9 +386,9 @@ def template_editor(template: Optional[Dict[str, Any]] = None) -> None:
     Args:
         template: Optional template to edit (None for new template)
     """
-    # Create a form for the template editor
+
     with st.form("template_editor_form"):
-        # Template identification
+
         template_name = st.text_input(
             "Template Name",
             value=template.get("name", "") if template else "",
@@ -428,7 +401,6 @@ def template_editor(template: Optional[Dict[str, Any]] = None) -> None:
             help="A brief description of what this template does"
         )
 
-        # Template metadata
         col1, col2, col3 = st.columns([1, 1, 1])
 
         with col1:
@@ -464,7 +436,6 @@ def template_editor(template: Optional[Dict[str, Any]] = None) -> None:
                 help="The insurance domain this template is designed for"
             )
 
-        # Template content
         template_content = st.text_area(
             "Template Content",
             value=template.get("template", "") if template else "",
@@ -472,22 +443,18 @@ def template_editor(template: Optional[Dict[str, Any]] = None) -> None:
             help="The actual template text. Use {variable_name} for placeholders."
         )
 
-        # Extract input variables from template content
         input_vars = []
         if template_content:
             import re
             input_vars = list(set(re.findall(r"\{(\w+)\}", template_content)))
 
-        # Display and edit input variables
         st.markdown("#### Input Variables")
         st.markdown(
             "Variables automatically detected from template content. Add or remove as needed.")
 
-        # Show input variables from the template if available
         existing_vars = template.get("input_variables", []) if template else []
         all_vars = sorted(list(set(existing_vars + input_vars)))
 
-        # Allow editing input variables
         input_variables = st.multiselect(
             "Input Variables",
             options=all_vars,
@@ -495,7 +462,6 @@ def template_editor(template: Optional[Dict[str, Any]] = None) -> None:
             help="Variables that need to be filled in when using this template"
         )
 
-        # Tags for the template
         tags_input = st.text_input(
             "Tags (comma-separated)",
             value=", ".join(template.get("tags", [])
@@ -503,12 +469,10 @@ def template_editor(template: Optional[Dict[str, Any]] = None) -> None:
             help="Tags to help categorize and find this template"
         )
 
-        # Process tags
         tags = [tag.strip()
                 for tag in tags_input.split(",")] if tags_input else []
         tags = [tag for tag in tags if tag]  # Remove empty tags
 
-        # Submit button
         submit_label = "Update Template" if template else "Create Template"
         submitted = st.form_submit_button(
             submit_label, use_container_width=True)
@@ -522,7 +486,6 @@ def template_editor(template: Optional[Dict[str, Any]] = None) -> None:
                 st.error("Template content is required")
                 return
 
-            # Create template dictionary
             new_template = {
                 "id": template.get("id", str(uuid.uuid4())) if template else str(uuid.uuid4()),
                 "name": template_name,
@@ -535,48 +498,38 @@ def template_editor(template: Optional[Dict[str, Any]] = None) -> None:
                 "tags": tags
             }
 
-            # Add timestamps
             if template and "created_at" in template:
                 new_template["created_at"] = template["created_at"]
 
-            # Save the template
             if save_template(new_template):
                 st.success(f"Template '{template_name}' saved successfully")
 
-                # Clear editing state
                 if "editing_template" in st.session_state:
                     st.session_state.editing_template = None
 
-                # Optionally set as active template
                 if st.checkbox("Set as active template", value=True):
                     st.session_state.active_template = new_template
                     st.success(f"Template '{template_name}' set as active")
 
-                # Force UI refresh
                 st.rerun()
             else:
                 st.error("Error saving template")
 
-    # Delete button (outside the form, only for existing templates)
     if template and "id" in template:
         if st.button("Delete Template", type="secondary"):
             if delete_template(template["id"]):
                 st.success(
                     f"Template '{template.get('name', 'Unnamed')}' deleted successfully")
 
-                # Clear editing state
                 if "editing_template" in st.session_state:
                     st.session_state.editing_template = None
 
-                # Clear active template if it's the same one
                 if "active_template" in st.session_state and st.session_state.active_template and st.session_state.active_template.get("id") == template["id"]:
                     st.session_state.active_template = None
 
-                # Force UI refresh
                 st.rerun()
             else:
                 st.error("Error deleting template")
-
 
 def display_template_info(template: Dict[str, Any]) -> None:
     """
@@ -585,11 +538,10 @@ def display_template_info(template: Dict[str, Any]) -> None:
     Args:
         template: Template dictionary to display information for
     """
-    # Basic template information
+
     st.markdown(f"### {template.get('name', 'Unnamed Template')}")
     st.markdown(template.get("description", "No description provided."))
 
-    # Template metadata
     col1, col2, col3 = st.columns([1, 1, 1])
 
     with col1:
@@ -604,12 +556,10 @@ def display_template_info(template: Dict[str, Any]) -> None:
         st.metric("Domain", template.get(
             "insurance_domain", "Not specified").capitalize())
 
-    # Created and updated timestamps
     if "created_at" in template or "updated_at" in template:
         created = template.get("created_at", "Unknown")
         updated = template.get("updated_at", "Unknown")
 
-        # Format dates if they are in ISO format
         try:
             created_dt = datetime.strptime(created, "%Y-%m-%dT%H:%M:%SZ")
             created = created_dt.strftime("%b %d, %Y")
@@ -628,16 +578,13 @@ def display_template_info(template: Dict[str, Any]) -> None:
         with col2:
             st.caption(f"Last Updated: {updated}")
 
-    # Template content in expandable section
     with st.expander("Template Content", expanded=True):
         st.code(template.get(
             "template", "Template content not available."), language="text")
 
-    # Display template examples
     with st.expander("Example Usage", expanded=False):
         st.markdown("#### Example Prompt")
 
-        # Create example values for input variables
         example_values = {}
         for var in template.get("input_variables", []):
             if var == "policy_document":
@@ -655,18 +602,15 @@ def display_template_info(template: Dict[str, Any]) -> None:
             else:
                 example_values[var] = f"[Example {var} content]"
 
-        # Fill in the template with example values
         example_prompt = template.get("template", "")
         for var, value in example_values.items():
             example_prompt = example_prompt.replace(f"{{{var}}}", value)
 
         st.code(example_prompt, language="text")
 
-    # Display usage suggestions
     with st.expander("Usage Suggestions", expanded=False):
         st.markdown("#### Recommended Use Cases")
 
-        # Determine suggestions based on template metadata
         task_type = template.get("task_type", "").lower()
         format_type = template.get("format", "").lower()
         domain = template.get("insurance_domain", "").lower()
@@ -718,7 +662,6 @@ def display_template_info(template: Dict[str, Any]) -> None:
 
         st.markdown("#### Parameter Recommendations")
 
-        # Suggest parameters based on task and format
         if "chain-of-thought" in format_type:
             st.markdown(
                 "- Use higher max_tokens (1500+) to allow for detailed reasoning")
@@ -739,7 +682,6 @@ def display_template_info(template: Dict[str, Any]) -> None:
             st.markdown(
                 "- Set appropriate max_tokens to constrain summary length")
 
-
 def fill_template(template: Dict[str, Any], values: Dict[str, str]) -> str:
     """
     Fill a template with values.
@@ -753,15 +695,13 @@ def fill_template(template: Dict[str, Any], values: Dict[str, str]) -> str:
     """
     template_text = template.get("template", "")
 
-    # Replace variables with values
     for var, value in values.items():
         template_text = template_text.replace(f"{{{var}}}", value)
 
     return template_text
 
-
 if __name__ == "__main__":
-    # For testing the component in isolation
+
     st.set_page_config(
         page_title="Prompt Templates - Insurance LLM Framework",
         page_icon="📝",
@@ -770,25 +710,21 @@ if __name__ == "__main__":
 
     st.title("Prompt Templates Component Test")
 
-    # Initialize session state for testing
     if "active_template" not in st.session_state:
         st.session_state.active_template = None
 
-    # Test the component
     st.subheader("Template Selector")
     selected_template = template_selector()
 
     if selected_template:
         st.success(f"Selected template: {selected_template.get('name')}")
 
-        # Test template preview
         st.subheader("Template Preview")
         template_preview(selected_template)
 
-        # Test template editor
         st.subheader("Template Editor")
         template_editor(selected_template)
     else:
-        # Test creating a new template
+
         st.subheader("Create New Template")
         template_editor()

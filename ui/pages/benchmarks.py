@@ -13,11 +13,9 @@ import time
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 
-# Import UI components
 from ui.components.benchmark_results import benchmark_selector, display_benchmark_summary, display_benchmark_comparison
 
 logger = logging.getLogger(__name__)
-
 
 def render():
     """Render the benchmarks page."""
@@ -26,43 +24,36 @@ def render():
     with st.expander("ℹ️ About Benchmarks", expanded=False):
         st.markdown("""
         This page allows you to run standardized benchmarks to evaluate model performance on insurance tasks.
-        
-        ### Benchmark Types
+
         - **Task-specific benchmarks**: Evaluate models on specific insurance tasks
         - **Industry benchmarks**: Compare against established insurance industry standards
         - **Custom benchmarks**: Create and run your own benchmarks
-        
-        ### Benchmarking Process
+
         1. Select a benchmark suite or create a custom benchmark
         2. Choose models to evaluate
         3. Run the benchmark
         4. Review results and export findings
         """)
 
-    # Check if model is loaded
     if "active_model" not in st.session_state or not st.session_state.active_model:
         st.warning(
             "⚠️ No model is currently loaded. Please select a model in the Model Selection page.")
         if st.button("Go to Model Selection"):
-            # This would navigate to model selection page in a real app
+
             st.info("In a real app, this would navigate to the Model Selection page.")
         return
 
-    # Create tabs for different benchmark functions
     tabs = st.tabs(["Run Benchmarks", "Benchmark Results", "Create Benchmark"])
 
-    # Run Benchmarks Tab
     with tabs[0]:
         st.subheader("Run Benchmarks")
 
-        # Benchmark selection
         selected_benchmark = benchmark_selector()
 
         if selected_benchmark:
             st.markdown(f"### {selected_benchmark['name']}")
             st.markdown(selected_benchmark["description"])
 
-            # Display benchmark details
             col1, col2 = st.columns([1, 1])
 
             with col1:
@@ -78,11 +69,10 @@ def render():
                     [m.capitalize() for m in selected_benchmark.get("metrics", [])])
                 st.markdown(f"**Metrics:** {metrics_list}")
 
-            # Sample of benchmark examples
             with st.expander("View Example Items", expanded=False):
                 examples = selected_benchmark.get("examples", [])
                 if examples:
-                    # Show first 3 examples
+
                     for i, example in enumerate(examples[:3]):
                         st.markdown(f"#### Example {i+1}")
                         st.markdown(f"**Input:**")
@@ -96,20 +86,16 @@ def render():
                 if len(examples) > 3:
                     st.markdown(f"*...and {len(examples) - 3} more examples*")
 
-            # Model selection
             st.markdown("### Select Models")
 
-            # Current model is always selected
             current_model = st.session_state.active_model
             st.markdown(f"Current model: **{current_model}**")
 
-            # Option to compare with other models
             compare_with_others = st.checkbox("Compare with other models")
 
             other_models = []
             if compare_with_others:
-                # In a real app, this would fetch available models
-                # For demo, we'll use a sample list
+
                 available_models = ["llama2-7b", "llama2-13b",
                                     "mistral-7b-instruct", "falcon-7b"]
                 available_models = [
@@ -123,13 +109,12 @@ def render():
                 else:
                     st.info("No other models available for comparison.")
 
-            # Benchmark configuration
             st.markdown("### Benchmark Configuration")
 
             col1, col2 = st.columns([1, 1])
 
             with col1:
-                # Allow configuring temperature and max tokens
+
                 temperature = st.slider(
                     "Temperature",
                     min_value=0.0,
@@ -149,9 +134,8 @@ def render():
                     help="Maximum tokens for generation"
                 )
 
-            # Advanced options
             with st.expander("Advanced Options", expanded=False):
-                # Sampling options
+
                 sampling_method = st.selectbox(
                     "Sampling Method",
                     options=["greedy", "top_p", "top_k", "beam"],
@@ -159,7 +143,6 @@ def render():
                     help="Greedy decoding recommended for benchmarks"
                 )
 
-                # Number of runs option
                 num_runs = st.slider(
                     "Number of Runs",
                     min_value=1,
@@ -169,7 +152,6 @@ def render():
                     help="Run benchmark multiple times for variance analysis"
                 )
 
-                # Seed option
                 seed = st.number_input(
                     "Random Seed",
                     min_value=0,
@@ -178,14 +160,12 @@ def render():
                     help="Set seed for reproducibility"
                 )
 
-            # Run benchmark button
             all_models = [current_model] + other_models
             if st.button("Run Benchmark", type="primary", use_container_width=True):
-                # Simulate running benchmark
+
                 progress_bar = st.progress(0)
                 status_text = st.empty()
 
-                # Store benchmark results
                 benchmark_results = {
                     "benchmark_id": selected_benchmark["id"],
                     "benchmark_name": selected_benchmark["name"],
@@ -206,7 +186,6 @@ def render():
                     progress_bar.progress(progress_value)
                     status_text.text(f"Running benchmark on model: {model}")
 
-                    # Simulate processing time based on model size
                     if "13b" in model:
                         delay = 3
                     elif "7b" in model:
@@ -216,7 +195,6 @@ def render():
 
                     time.sleep(delay)
 
-                    # Generate simulated results
                     examples = selected_benchmark.get("examples", [])
                     metrics = selected_benchmark.get("metrics", [])
 
@@ -225,34 +203,29 @@ def render():
                         "aggregate_metrics": {}
                     }
 
-                    # Simulate example results
                     for j, example in enumerate(examples):
-                        # Update progress for each example
+
                         example_progress = progress_value + \
                             (1 / len(all_models)) * (j / len(examples))
                         progress_bar.progress(example_progress)
                         status_text.text(
                             f"Model: {model} - Processing example {j+1}/{len(examples)}")
 
-                        # Simulate example result
                         example_result = {
                             "input": example.get("input", ""),
                             "output": f"Simulated output for {model} on example {j+1}",
                             "metrics": {}
                         }
 
-                        # Add reference if available
                         if "reference" in example:
                             example_result["reference"] = example["reference"]
 
-                        # Simulate metric scores
                         import random
                         for metric in metrics:
-                            # Larger models tend to get better scores in simulation
+
                             model_bonus = 0.1 if "13b" in model else 0.05 if "7b" in model else 0.0
                             base_score = 0.65 + model_bonus
 
-                            # Different metrics for different tasks
                             if metric == "accuracy":
                                 example_result["metrics"][metric] = min(
                                     0.95, base_score + random.uniform(0, 0.2))
@@ -277,7 +250,6 @@ def render():
 
                         model_results["example_results"].append(example_result)
 
-                    # Calculate aggregate metrics
                     for metric in metrics:
                         scores = [ex["metrics"].get(
                             metric, 0) for ex in model_results["example_results"]]
@@ -288,21 +260,17 @@ def render():
                                 "max": max(scores)
                             }
 
-                    # Calculate overall score
                     if model_results["aggregate_metrics"]:
                         mean_scores = [
                             metrics_data["mean"] for metrics_data in model_results["aggregate_metrics"].values()]
                         model_results["overall_score"] = sum(
                             mean_scores) / len(mean_scores)
 
-                    # Add to benchmark results
                     benchmark_results["models"][model] = model_results
 
-                # Complete progress bar
                 progress_bar.progress(1.0)
                 status_text.text("Benchmark completed!")
 
-                # Calculate overall ranking
                 model_scores = {model: results.get(
                     "overall_score", 0) for model, results in benchmark_results["models"].items()}
                 sorted_models = sorted(
@@ -310,7 +278,6 @@ def render():
                 benchmark_results["overall_results"]["ranking"] = [
                     {"model": model, "score": score} for model, score in sorted_models]
 
-                # Average scores across all models for each metric
                 all_metrics = selected_benchmark.get("metrics", [])
                 benchmark_results["overall_results"]["metric_averages"] = {}
 
@@ -325,33 +292,27 @@ def render():
                         benchmark_results["overall_results"]["metric_averages"][metric] = sum(
                             scores) / len(scores)
 
-                # Store benchmark results in session state
                 if "benchmark_results" not in st.session_state:
                     st.session_state.benchmark_results = []
 
                 st.session_state.benchmark_results.append(benchmark_results)
                 st.session_state.current_benchmark_results = benchmark_results
 
-                # Show success message
                 st.success("Benchmark completed successfully!")
 
-                # Display summary results
                 display_benchmark_summary(benchmark_results)
         else:
             st.info("Select a benchmark to run.")
 
-    # Benchmark Results Tab
     with tabs[1]:
         st.subheader("Benchmark Results")
 
-        # Check if we have benchmark results
         if "benchmark_results" not in st.session_state or not st.session_state.benchmark_results:
             st.info("No benchmark results available. Run a benchmark first.")
         else:
-            # Display list of benchmark runs
+
             benchmark_runs = st.session_state.benchmark_results
 
-            # Create a table of benchmark runs
             run_data = [
                 {
                     "Timestamp": run["timestamp"],
@@ -365,7 +326,6 @@ def render():
             run_df = pd.DataFrame(run_data)
             st.dataframe(run_df, use_container_width=True, hide_index=True)
 
-            # Allow selecting a benchmark run
             run_timestamps = [run["timestamp"] for run in benchmark_runs]
             selected_timestamp = st.selectbox(
                 "Select Benchmark Run",
@@ -377,12 +337,11 @@ def render():
                 (run for run in benchmark_runs if run["timestamp"] == selected_timestamp), None)
 
             if selected_run:
-                # Display benchmark results
+
                 st.markdown(
                     f"### Results for {selected_run['benchmark_name']}")
                 st.markdown(f"*Run at: {selected_run['timestamp']}*")
 
-                # Configuration info
                 with st.expander("Benchmark Configuration", expanded=False):
                     config = selected_run.get("configuration", {})
                     st.markdown(
@@ -396,10 +355,8 @@ def render():
                     st.markdown(
                         f"**Random Seed:** {config.get('seed', 'N/A')}")
 
-                # Display benchmark results
                 display_benchmark_comparison(selected_run)
 
-                # Export options
                 export_format = st.selectbox(
                     "Export Format",
                     options=["JSON", "CSV", "PDF"]
@@ -407,7 +364,7 @@ def render():
 
                 if st.button("Export Results"):
                     if export_format == "JSON":
-                        # Export as JSON
+
                         st.download_button(
                             label="Download JSON",
                             data=json.dumps(selected_run, indent=2),
@@ -415,7 +372,7 @@ def render():
                             mime="application/json"
                         )
                     elif export_format == "CSV":
-                        # Export as CSV (flattened structure)
+
                         csv_data = []
 
                         for model, results in selected_run["models"].items():
@@ -426,7 +383,6 @@ def render():
                                 "overall_score": results.get("overall_score", "N/A")
                             }
 
-                            # Add aggregate metrics
                             for metric, values in results.get("aggregate_metrics", {}).items():
                                 for key, value in values.items():
                                     model_row[f"{metric}_{key}"] = value
@@ -443,11 +399,10 @@ def render():
                             mime="text/csv"
                         )
                     else:
-                        # PDF would be implemented in a real app
+
                         st.info(
                             "PDF export would be implemented in a production version.")
 
-    # Create Benchmark Tab
     with tabs[2]:
         st.subheader("Create Custom Benchmark")
 
@@ -456,9 +411,8 @@ def render():
         Custom benchmarks can be tailored to your specific needs and use cases.
         """)
 
-        # Form for creating a benchmark
         with st.form("create_benchmark_form"):
-            # Basic information
+
             benchmark_name = st.text_input(
                 "Benchmark Name", placeholder="e.g., Policy Summarization Benchmark")
             benchmark_description = st.text_area(
@@ -477,14 +431,12 @@ def render():
                 domain = st.selectbox("Insurance Domain",
                                       options=domain_options)
 
-            # Evaluation metrics
             st.markdown("### Evaluation Metrics")
             metrics_options = ["accuracy", "clarity", "completeness",
                                "relevance", "bleu", "rouge", "semantic_similarity"]
             selected_metrics = st.multiselect(
                 "Select Metrics", options=metrics_options)
 
-            # Benchmark examples
             st.markdown("### Benchmark Examples")
             st.info(
                 "Add examples for your benchmark. Each example should include an input and reference output.")
@@ -506,7 +458,6 @@ def render():
                             "reference": example_reference
                         })
 
-            # Submit button
             submitted = st.form_submit_button(
                 "Create Benchmark", use_container_width=True)
 
@@ -518,7 +469,7 @@ def render():
                 elif not examples:
                     st.error("Please add at least one example")
                 else:
-                    # Create benchmark dictionary
+
                     benchmark = {
                         "id": f"custom_{datetime.now().strftime('%Y%m%d%H%M%S')}",
                         "name": benchmark_name,
@@ -530,37 +481,32 @@ def render():
                         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     }
 
-                    # Store in session state
                     if "custom_benchmarks" not in st.session_state:
                         st.session_state.custom_benchmarks = []
 
                     st.session_state.custom_benchmarks.append(benchmark)
 
-                    # Success message
                     st.success(
                         f"Benchmark '{benchmark_name}' created successfully!")
 
-                    # Option to run the benchmark immediately
                     if st.button("Run This Benchmark Now"):
-                        # In a real app, this would navigate to the run benchmark tab with this benchmark selected
+
                         st.info(
                             "In a real app, this would navigate to the Run Benchmark tab with this benchmark selected.")
 
-
 if __name__ == "__main__":
-    # For testing the page in isolation
+
     st.set_page_config(
         page_title="Benchmarks - Insurance LLM Framework",
         page_icon="📊",
         layout="wide"
     )
 
-    # Initialize session state for testing
     if "active_model" not in st.session_state:
         st.session_state.active_model = "llama2-7b"
 
     if "benchmark_results" not in st.session_state:
-        # Sample benchmark results for testing
+
         st.session_state.benchmark_results = [{
             "benchmark_id": "policy_summarization",
             "benchmark_name": "Policy Summarization Benchmark",

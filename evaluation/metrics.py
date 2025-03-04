@@ -10,7 +10,6 @@ from typing import Dict, List, Optional, Any, Union, Callable
 import numpy as np
 from dataclasses import dataclass
 
-# NLP libraries for metrics
 import nltk
 try:
     nltk.data.find('tokenizers/punkt')
@@ -28,13 +27,11 @@ from rouge_score import rouge_scorer
 import sacrebleu
 from evaluate import load as load_metric
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
-
 
 @dataclass
 class EvaluationResult:
@@ -54,7 +51,6 @@ class EvaluationResult:
             "normalized_score": self.score / self.max_score if self.max_score > 0 else 0,
             "details": self.details
         }
-
 
 class EvaluationMetric:
     """Base class for evaluation metrics."""
@@ -90,7 +86,6 @@ class EvaluationMetric:
             An EvaluationResult object
         """
         raise NotImplementedError("Subclasses must implement this method")
-
 
 class ROUGEMetric(EvaluationMetric):
     """ROUGE metric for evaluating text summarization quality."""
@@ -132,7 +127,6 @@ class ROUGEMetric(EvaluationMetric):
 
         scores = self.scorer.score(reference_text, generated_text)
 
-        # Calculate average F1 score across all specified ROUGE types
         avg_f1 = np.mean(
             [scores[rouge_type].fmeasure for rouge_type in self.rouge_types])
 
@@ -151,7 +145,6 @@ class ROUGEMetric(EvaluationMetric):
             max_score=1.0,
             details=details
         )
-
 
 class BLEUMetric(EvaluationMetric):
     """BLEU metric for evaluating text generation quality."""
@@ -183,7 +176,6 @@ class BLEUMetric(EvaluationMetric):
         if not reference_text:
             raise ValueError("Reference text is required for BLEU evaluation")
 
-        # Calculate BLEU score
         bleu = sacrebleu.corpus_bleu([generated_text], [[reference_text]])
 
         return EvaluationResult(
@@ -195,7 +187,6 @@ class BLEUMetric(EvaluationMetric):
                 "precisions": bleu.precisions
             }
         )
-
 
 class RelevanceMetric(EvaluationMetric):
     """Metric for evaluating relevance of insurance text to the context."""
@@ -233,12 +224,10 @@ class RelevanceMetric(EvaluationMetric):
         """
         context = context or {}
 
-        # Use provided keywords or extract from reference text
         keywords = context.get('keywords', [])
         if not keywords and reference_text:
             keywords = self._extract_keywords(reference_text)
 
-        # If no keywords are available, can't evaluate relevance
         if not keywords:
             logger.warning("No keywords available for relevance evaluation")
             return EvaluationResult(
@@ -248,11 +237,9 @@ class RelevanceMetric(EvaluationMetric):
                 details={"error": "No keywords available"}
             )
 
-        # Tokenize and normalize generated text
         tokens = word_tokenize(generated_text.lower())
         tokens = [t for t in tokens if t.isalnum() and t not in self.stop_words]
 
-        # Calculate keyword coverage
         keyword_matched = 0
         keyword_details = {}
 
@@ -287,10 +274,8 @@ class RelevanceMetric(EvaluationMetric):
         tokens = word_tokenize(text.lower())
         tokens = [t for t in tokens if t.isalnum() and t not in self.stop_words]
 
-        # Simple frequency-based keyword extraction
         freq_dist = nltk.FreqDist(tokens)
         return [word for word, freq in freq_dist.most_common(10)]
-
 
 class ContentCompletenessMetric(EvaluationMetric):
     """Metric for evaluating completeness of insurance information in generated text."""
@@ -339,14 +324,12 @@ class ContentCompletenessMetric(EvaluationMetric):
                 details={"error": "No required sections specified"}
             )
 
-        # Check for presence of each required section
         section_present = {}
         for section in required_sections:
-            # Simple check for section name in text
+
             present = section.lower() in generated_text.lower()
             section_present[section] = present
 
-        # Calculate completeness score
         completeness_score = sum(
             1 for present in section_present.values() if present) / len(required_sections)
 
@@ -360,7 +343,6 @@ class ContentCompletenessMetric(EvaluationMetric):
                 "sections_found": sum(1 for present in section_present.values() if present)
             }
         )
-
 
 class ComplexityMetric(EvaluationMetric):
     """Metric for evaluating text complexity and readability."""
@@ -389,29 +371,23 @@ class ComplexityMetric(EvaluationMetric):
         Returns:
             Complexity evaluation result
         """
-        # Tokenize text
+
         sentences = nltk.sent_tokenize(generated_text)
         words = word_tokenize(generated_text)
 
-        # Basic complexity metrics
         avg_sentence_length = len(words) / len(sentences) if sentences else 0
         long_words = [w for w in words if len(w) > 6]
         long_word_ratio = len(long_words) / len(words) if words else 0
 
-        # Simplified Flesch-Kincaid readability score
         total_syllables = sum(self._count_syllables(word) for word in words)
         flesch_reading_ease = 206.835 - \
             (1.015 * avg_sentence_length) - \
             (84.6 * (total_syllables / len(words))) if words else 0
 
-        # Normalize to [0, 1] scale (100 is very easy, 0 is very complex)
         normalized_ease = max(0, min(flesch_reading_ease, 100)) / 100
 
-        # For insurance, moderate complexity is ideal (not too simple, not too complex)
-        # Adjust score to favor the 40-60 range on the Flesch scale (moderate)
-        # Distance from optimal point (50)
         optimal_range_distance = abs(normalized_ease * 100 - 50) / 50
-        # Higher score for closer to optimal
+
         complexity_score = 1 - optimal_range_distance
 
         return EvaluationResult(
@@ -446,7 +422,6 @@ class ComplexityMetric(EvaluationMetric):
                 count += 1
             prev_is_vowel = is_vowel
 
-        # Handle edge cases
         if word.endswith('e'):
             count -= 1
         if word.endswith('le') and len(word) > 2 and word[-3] not in vowels:
@@ -455,7 +430,6 @@ class ComplexityMetric(EvaluationMetric):
             count = 1
 
         return count
-
 
 class ComplianceMetric(EvaluationMetric):
     """Metric for evaluating compliance with insurance regulations and terminology."""
@@ -504,23 +478,19 @@ class ComplianceMetric(EvaluationMetric):
 
         generated_lower = generated_text.lower()
 
-        # Check required phrases
         required_present = {}
         for phrase in required_phrases:
             required_present[phrase] = phrase.lower() in generated_lower
 
-        # Check prohibited phrases
         prohibited_present = {}
         for phrase in prohibited_phrases:
             prohibited_present[phrase] = phrase.lower() in generated_lower
 
-        # Calculate compliance score
         required_score = sum(1 for present in required_present.values(
         ) if present) / max(1, len(required_phrases))
         prohibited_score = 1 - (sum(1 for present in prohibited_present.values()
                                 if present) / max(1, len(prohibited_phrases)))
 
-        # Weight required phrases more heavily (0.7) than prohibited phrases (0.3)
         compliance_score = 0.7 * required_score + 0.3 * \
             prohibited_score if (
                 required_phrases or prohibited_phrases) else 0.5
@@ -536,7 +506,6 @@ class ComplianceMetric(EvaluationMetric):
                 "prohibited_score": prohibited_score
             }
         )
-
 
 class EvaluationMetrics:
     """Manager class for evaluation metrics."""
@@ -610,7 +579,6 @@ class EvaluationMetrics:
         """
         results = {}
 
-        # Use all metrics if none specified
         metric_names = metric_names or list(self.metrics.keys())
 
         for name in metric_names:
@@ -660,7 +628,6 @@ class EvaluationMetrics:
             weighted_sum += weight * (result.score / result.max_score)
 
         return weighted_sum / total_weight if total_weight > 0 else 0.0
-
 
 def get_metrics_manager() -> EvaluationMetrics:
     """Get or create a global metrics manager instance."""

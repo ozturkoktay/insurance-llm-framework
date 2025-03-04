@@ -7,7 +7,6 @@ This module provides the sidebar navigation used throughout the application.
 import streamlit as st
 from typing import Callable
 
-
 def create_sidebar():
     """
     Create the application sidebar with navigation options.
@@ -20,7 +19,6 @@ def create_sidebar():
 
         st.markdown("---")
 
-        # Navigation
         selected = st.radio(
             "Navigate:",
             options=[
@@ -37,7 +35,6 @@ def create_sidebar():
 
         st.markdown("---")
 
-        # Show model status if a model is loaded
         if "current_model" in st.session_state and st.session_state.current_model:
             model_info = st.session_state.current_model
             st.success(f"Model loaded: {model_info['name']}")
@@ -47,7 +44,6 @@ def create_sidebar():
         else:
             st.warning("No model loaded")
 
-        # Show current prompt template if selected
         if "current_template" in st.session_state and st.session_state.current_template:
             template = st.session_state.current_template
             st.success(f"Template: {template['name']}")
@@ -55,26 +51,22 @@ def create_sidebar():
 
         st.markdown("---")
 
-        # App info
         st.markdown("### About")
         st.info(
             "An open-source prompt engineering and evaluation framework "
             "for insurance domain applications."
         )
 
-        # GitHub link
         st.markdown(
             "[GitHub Repository](https://github.com/yourusername/insurance-llm-framework)")
 
     return selected
 
-
 def display_logo():
     """Display the application logo in the sidebar."""
     with st.sidebar:
-        # You can add a logo image here if available
-        st.markdown("# 🏥 Insurance LLM Framework")
 
+        st.markdown("# 🏥 Insurance LLM Framework")
 
 def set_page_config():
     """Set the page configuration for the Streamlit app."""

@@ -12,12 +12,10 @@ import pandas as pd
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 
-# Import UI components
 from ui.components.metrics_display import display_metrics
 from ui.components.output_display import display_evaluation_results
 
 logger = logging.getLogger(__name__)
-
 
 def render():
     """Render the evaluation page."""
@@ -26,24 +24,20 @@ def render():
     with st.expander("ℹ️ About Evaluation", expanded=False):
         st.markdown("""
         This page allows you to evaluate the performance of language models on insurance tasks.
-        
-        ### Evaluation Methods
+
         - **Automated Metrics**: Quantitative measures of output quality
         - **Human Evaluation**: Qualitative assessment by human evaluators
         - **Insurance-Specific Metrics**: Domain-specific measures for insurance text
-        
-        ### Evaluation Process
+
         1. Select outputs to evaluate
         2. Choose evaluation metrics
         3. Run evaluation
         4. Review and export results
         """)
 
-    # Create tabs for different types of evaluation
     tabs = st.tabs(["Automatic Evaluation", "Human Evaluation",
                    "Comparative Evaluation"])
 
-    # Automatic Evaluation Tab
     with tabs[0]:
         st.subheader("Automatic Evaluation")
 
@@ -52,17 +46,14 @@ def render():
         These metrics provide objective measurements across different dimensions.
         """)
 
-        # Check if we have generations to evaluate
         if "generation_history" not in st.session_state or not st.session_state.generation_history:
             st.warning(
                 "No generations available for evaluation. Generate text first.")
             return
 
-        # Select generations to evaluate
         selected_indices = []
         generations = st.session_state.generation_history
 
-        # Create a table of generations
         generation_data = [
             {
                 "Timestamp": g["timestamp"],
@@ -76,7 +67,6 @@ def render():
         generation_df = pd.DataFrame(generation_data)
         st.dataframe(generation_df, use_container_width=True, hide_index=True)
 
-        # Select generations for evaluation
         generation_timestamps = [g["timestamp"] for g in generations]
         selected_timestamp = st.selectbox(
             "Select Generation to Evaluate",
@@ -91,7 +81,6 @@ def render():
             st.markdown(
                 f"### Evaluating: {selected_generation['template_name']}")
 
-            # Metric selection
             st.markdown("### Select Metrics")
 
             col1, col2 = st.columns(2)
@@ -112,7 +101,6 @@ def render():
                     default=["Clarity", "Completeness"]
                 )
 
-            # Reference text (optional)
             st.markdown("### Reference Text (Optional)")
             st.markdown(
                 "If you have a reference or 'gold standard' text, you can use it for reference-based metrics.")
@@ -132,13 +120,10 @@ def render():
                         default=["ROUGE", "Semantic Similarity"]
                     )
 
-            # Run evaluation button
             if st.button("Run Evaluation", type="primary", use_container_width=True):
-                # In a real app, this would calculate actual metrics
-                # For demo, we'll simulate results
 
                 with st.spinner("Calculating metrics..."):
-                    # Create simulated evaluation results
+
                     eval_results = {
                         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         "model": selected_generation["model"],
@@ -147,7 +132,6 @@ def render():
                         "metrics": {}
                     }
 
-                    # Add basic metrics
                     if "Length" in basic_metrics:
                         eval_results["metrics"]["Length"] = {
                             "chars": len(selected_generation["generated_text"]),
@@ -175,7 +159,6 @@ def render():
                             "explanation": "Few minor errors detected, generally well-formed."
                         }
 
-                    # Add insurance metrics
                     if "Compliance" in insurance_metrics:
                         eval_results["metrics"]["Compliance"] = {
                             "score": 0.85,  # Simulated
@@ -201,7 +184,6 @@ def render():
                             "explanation": "Addresses most key aspects of the task."
                         }
 
-                    # Add reference metrics if reference text was provided
                     if reference_text:
                         if "BLEU" in reference_metrics:
                             eval_results["metrics"]["BLEU"] = {
@@ -231,7 +213,6 @@ def render():
                                 "explanation": "Strong semantic alignment with reference content."
                             }
 
-                    # Calculate overall score as average of all metrics
                     overall_scores = []
                     for metric_name, metric_data in eval_results["metrics"].items():
                         if isinstance(metric_data, dict) and "score" in metric_data:
@@ -245,21 +226,17 @@ def render():
                         eval_results["overall_score"] = sum(
                             overall_scores) / len(overall_scores)
 
-                    # Store evaluation results in session state
                     if "automatic_evaluations" not in st.session_state:
                         st.session_state.automatic_evaluations = []
 
                     st.session_state.automatic_evaluations.append(eval_results)
 
-                    # Also store in the generation
                     selected_generation["automatic_evaluation"] = eval_results
 
                 st.success("Evaluation complete!")
 
-                # Display evaluation results
                 display_metrics(eval_results)
 
-                # Export button
                 export_formats = ["JSON", "CSV", "PDF"]
                 export_format = st.selectbox("Export Format", export_formats)
 
@@ -272,7 +249,7 @@ def render():
                             mime="application/json"
                         )
                     elif export_format == "CSV":
-                        # Create a flattened version of the metrics for CSV
+
                         flat_metrics = {}
                         for metric_name, metric_data in eval_results["metrics"].items():
                             if isinstance(metric_data, dict):
@@ -302,7 +279,6 @@ def render():
                         st.info(
                             "PDF export would be implemented in a production version.")
 
-    # Human Evaluation Tab
     with tabs[1]:
         st.subheader("Human Evaluation")
 
@@ -311,18 +287,16 @@ def render():
         This provides qualitative insights that automated metrics may miss.
         """)
 
-        # Check if we have human evaluations
         if "evaluations" not in st.session_state or not st.session_state.evaluations:
             st.info("No human evaluations have been submitted yet.")
 
-            # Option to create a new evaluation
             st.markdown("### Create New Evaluation")
 
             if "generation_history" not in st.session_state or not st.session_state.generation_history:
                 st.warning(
                     "No generations available to evaluate. Generate text first.")
             else:
-                # Select a generation to evaluate
+
                 generation_options = [
                     f"{g['timestamp']} - {g['template_name']}"
                     for g in st.session_state.generation_history
@@ -348,7 +322,6 @@ def render():
                         st.markdown(
                             f"**Model:** {selected_generation['model']}")
 
-                        # Display the text to evaluate
                         st.markdown("### Generated Text")
                         st.text_area(
                             "Text to Evaluate",
@@ -357,20 +330,18 @@ def render():
                             disabled=True
                         )
 
-                        # Link to the evaluation form
                         st.info(
                             "Use the Human Evaluation tab in the Text Generation page to evaluate this text.")
 
                         if st.button("Go to Evaluation Form"):
-                            # In a real app, this would navigate to the evaluation form
+
                             st.session_state.current_generation = selected_generation
                             st.info(
                                 "In a real app, this would navigate to the evaluation form page.")
         else:
-            # Display existing evaluations
+
             st.markdown("### Submitted Evaluations")
 
-            # Create a table of evaluations
             eval_data = [
                 {
                     "Timestamp": e["timestamp"],
@@ -384,7 +355,6 @@ def render():
             eval_df = pd.DataFrame(eval_data)
             st.dataframe(eval_df, use_container_width=True, hide_index=True)
 
-            # Select an evaluation to view in detail
             eval_timestamps = [e["timestamp"]
                                for e in st.session_state.evaluations]
             selected_eval_timestamp = st.selectbox(
@@ -397,10 +367,9 @@ def render():
                 (e for e in st.session_state.evaluations if e["timestamp"] == selected_eval_timestamp), None)
 
             if selected_eval:
-                # Display detailed evaluation results
+
                 display_evaluation_results(selected_eval)
 
-                # Find the associated generation
                 if "generation_id" in selected_eval and selected_eval["generation_id"]:
                     associated_generation = next(
                         (g for g in st.session_state.generation_history if g["timestamp"] == selected_eval["generation_id"]),
@@ -417,7 +386,6 @@ def render():
                                 disabled=True
                             )
 
-    # Comparative Evaluation Tab
     with tabs[2]:
         st.subheader("Comparative Evaluation")
 
@@ -426,7 +394,6 @@ def render():
         This helps identify strengths and weaknesses across different approaches.
         """)
 
-        # Check if we have evaluations to compare
         if (
             "automatic_evaluations" not in st.session_state or
             not st.session_state.automatic_evaluations or
@@ -436,12 +403,10 @@ def render():
                 "Need at least two automatic evaluations to compare. Run more evaluations first.")
             return
 
-        # Select evaluations to compare
         st.markdown("### Select Evaluations to Compare")
 
         evaluations = st.session_state.automatic_evaluations
 
-        # Create a table of evaluations
         eval_data = [
             {
                 "Timestamp": e["timestamp"],
@@ -456,7 +421,6 @@ def render():
         eval_df = pd.DataFrame(eval_data)
         st.dataframe(eval_df, use_container_width=True, hide_index=True)
 
-        # Select evaluations for comparison
         eval_timestamps = [e["timestamp"] for e in evaluations]
         selected_evals = st.multiselect(
             "Select Evaluations to Compare",
@@ -467,22 +431,19 @@ def render():
         if len(selected_evals) < 2:
             st.info("Select at least two evaluations to compare.")
         else:
-            # Get the selected evaluations
+
             selected_evaluation_objects = [
                 e for e in evaluations if e["timestamp"] in selected_evals
             ]
 
-            # Compare evaluations
             st.markdown("### Comparison Results")
 
-            # Find common metrics
             all_metrics = set()
             for eval_obj in selected_evaluation_objects:
                 all_metrics.update(eval_obj["metrics"].keys())
 
             common_metrics = list(all_metrics)
 
-            # Create comparison data
             comparison_data = {}
 
             for metric in common_metrics:
@@ -500,28 +461,24 @@ def render():
                             metric_values[eval_name] = metric_data["f1"]
                         elif metric == "ROUGE" and isinstance(metric_data, dict) and "rouge-l" in metric_data:
                             metric_values[eval_name] = metric_data["rouge-l"]
-                        # For length metrics, use words
+
                         elif metric == "Length" and isinstance(metric_data, dict) and "words" in metric_data:
                             metric_values[eval_name] = metric_data["words"]
-                        # For readability, use flesch_reading_ease
+
                         elif metric == "Readability" and isinstance(metric_data, dict) and "flesch_reading_ease" in metric_data:
                             metric_values[eval_name] = metric_data["flesch_reading_ease"]
 
                 if metric_values:
                     comparison_data[metric] = metric_values
 
-            # Display comparison charts
             for metric, values in comparison_data.items():
                 st.markdown(f"#### {metric}")
 
-                # Convert to dataframe for charting
                 df = pd.DataFrame(
                     {"Model-Template": list(values.keys()), "Score": list(values.values())})
 
-                # Display as bar chart
                 st.bar_chart(df.set_index("Model-Template"))
 
-            # Overall score comparison
             st.markdown("#### Overall Score Comparison")
 
             overall_scores = {}
@@ -535,23 +492,19 @@ def render():
                     {"Model-Template": list(overall_scores.keys()), "Score": list(overall_scores.values())})
                 st.bar_chart(overall_df.set_index("Model-Template"))
 
-            # Summary and recommendations
             st.markdown("### Summary and Recommendations")
 
-            # Find the best model for each metric
             best_for_metrics = {}
             for metric, values in comparison_data.items():
                 best_model = max(values.items(), key=lambda x: x[1])[0]
                 best_for_metrics[metric] = best_model
 
-            # Display best models
             st.markdown("#### Best Model-Template by Metric")
 
             best_df = pd.DataFrame({"Metric": list(best_for_metrics.keys(
             )), "Best Model-Template": list(best_for_metrics.values())})
             st.dataframe(best_df, use_container_width=True, hide_index=True)
 
-            # Overall recommendation
             if overall_scores:
                 best_overall = max(overall_scores.items(),
                                    key=lambda x: x[1])[0]
@@ -559,18 +512,16 @@ def render():
                 st.info(
                     f"The best overall performance was achieved by: **{best_overall}**")
 
-
 if __name__ == "__main__":
-    # For testing the page in isolation
+
     st.set_page_config(
         page_title="Evaluation - Insurance LLM Framework",
         page_icon="🔍",
         layout="wide"
     )
 
-    # Initialize session state for testing
     if "generation_history" not in st.session_state:
-        # Create some sample generations for testing
+
         st.session_state.generation_history = [
             {
                 "model": "llama2-7b",
@@ -595,7 +546,7 @@ if __name__ == "__main__":
         ]
 
     if "evaluations" not in st.session_state:
-        # Create some sample evaluations for testing
+
         st.session_state.evaluations = [
             {
                 "timestamp": "2023-10-20 15:45:30",
@@ -617,7 +568,7 @@ if __name__ == "__main__":
         ]
 
     if "automatic_evaluations" not in st.session_state:
-        # Create some sample automatic evaluations for testing
+
         st.session_state.automatic_evaluations = [
             {
                 "timestamp": "2023-10-20 16:00:12",

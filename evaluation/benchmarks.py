@@ -18,16 +18,13 @@ import numpy as np
 
 from .metrics import EvaluationMetrics, get_metrics_manager
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-# Default path for benchmark datasets
 DEFAULT_BENCHMARKS_DIR = os.path.join(os.path.dirname(__file__), "benchmarks")
-
 
 @dataclass
 class BenchmarkExample:
@@ -37,7 +34,6 @@ class BenchmarkExample:
     input_text: str
     reference_output: str
     metadata: Dict[str, Any]
-
 
 @dataclass
 class Benchmark:
@@ -115,7 +111,6 @@ class Benchmark:
                 f"Error loading benchmark from {input_path}: {str(e)}")
             raise
 
-
 @dataclass
 class BenchmarkResult:
     """Class representing the result of running a benchmark."""
@@ -159,7 +154,6 @@ class BenchmarkResult:
             DataFrame with benchmark results
         """
         return pd.DataFrame(self.results)
-
 
 class BenchmarkManager:
     """Manager class for benchmarks and benchmark runs."""
@@ -213,7 +207,7 @@ class BenchmarkManager:
         Returns:
             The created benchmark
         """
-        # Use default metrics if none provided
+
         if metrics is None:
             if task_type == "policy_summary":
                 metrics = ["rouge", "bleu", "relevance", "completeness"]
@@ -236,7 +230,6 @@ class BenchmarkManager:
 
         self.benchmarks[name] = benchmark
 
-        # Save the benchmark
         benchmark_path = Path(self.benchmarks_dir) / f"{name}.json"
         benchmark.save(str(benchmark_path))
 
@@ -296,25 +289,21 @@ class BenchmarkManager:
         if not benchmark:
             raise ValueError(f"Benchmark not found: {benchmark_name}")
 
-        # Use benchmark metrics if none provided
         metrics = metrics or benchmark.metrics
 
-        # Check if all metrics are available
         available_metrics = [m["name"]
                              for m in self.metrics_manager.list_metrics()]
         for metric in metrics:
             if metric not in available_metrics:
                 logger.warning(f"Metric not available: {metric}")
 
-        # Run the benchmark
         results = []
 
         for example in benchmark.examples:
             try:
-                # Generate text using the provided function
+
                 generated_text = generate_fn(example.input_text)
 
-                # Evaluate the generated text
                 evaluation_context = {
                     **(context or {}),
                     **example.metadata
@@ -327,7 +316,6 @@ class BenchmarkManager:
                     context=evaluation_context
                 )
 
-                # Prepare result for this example
                 result = {
                     "example_id": example.id,
                     "input_text": example.input_text,
@@ -348,7 +336,7 @@ class BenchmarkManager:
             except Exception as e:
                 logger.error(
                     f"Error evaluating example {example.id}: {str(e)}")
-                # Add failed example with error
+
                 results.append({
                     "example_id": example.id,
                     "input_text": example.input_text,
@@ -358,7 +346,6 @@ class BenchmarkManager:
                     "details": {"error": str(e)}
                 })
 
-        # Calculate aggregate scores
         aggregate_scores = {}
 
         for metric in metrics:
@@ -369,14 +356,12 @@ class BenchmarkManager:
             else:
                 aggregate_scores[metric] = 0.0
 
-        # Calculate overall score (average of all metrics)
         if aggregate_scores:
             aggregate_scores["overall"] = sum(
                 aggregate_scores.values()) / len(aggregate_scores)
         else:
             aggregate_scores["overall"] = 0.0
 
-        # Create benchmark result
         benchmark_result = BenchmarkResult(
             benchmark_name=benchmark_name,
             model_id=model_id,
@@ -390,7 +375,6 @@ class BenchmarkManager:
             }
         )
 
-        # Save the result
         results_dir = Path(self.benchmarks_dir) / "results"
         results_dir.mkdir(parents=True, exist_ok=True)
 
@@ -418,10 +402,8 @@ class BenchmarkManager:
         if not model_results:
             return pd.DataFrame()
 
-        # Extract benchmark task type
         task_type = next(iter(model_results.values())).task_type
 
-        # Create comparison data
         comparison_data = []
 
         for model_id, result in model_results.items():
@@ -432,7 +414,6 @@ class BenchmarkManager:
                 "overall_score": result.aggregate_scores["overall"]
             }
 
-            # Add individual metric scores
             for metric, score in result.aggregate_scores.items():
                 if metric != "overall":
                     row[f"{metric}_score"] = score
@@ -461,7 +442,7 @@ class BenchmarkManager:
             return False
 
         try:
-            # Create a DataFrame for all results
+
             all_data = []
 
             for result in benchmark_results:
@@ -473,13 +454,11 @@ class BenchmarkManager:
                         "example_id": example_result["example_id"]
                     }
 
-                    # Add metrics
                     for metric, score in example_result["metrics"].items():
                         row[f"{metric}_score"] = score
 
                     all_data.append(row)
 
-            # Convert to DataFrame and save
             df = pd.DataFrame(all_data)
             df.to_csv(output_path, index=False)
 
@@ -490,13 +469,10 @@ class BenchmarkManager:
             logger.error(f"Error exporting to CSV {output_path}: {str(e)}")
             return False
 
-
 def get_benchmark_manager() -> BenchmarkManager:
     """Get or create a global benchmark manager instance."""
     return BenchmarkManager()
 
-
-# Sample benchmark creation functions
 def create_policy_summary_benchmark() -> Benchmark:
     """
     Create a sample benchmark for policy summarization.
@@ -617,7 +593,6 @@ This homeowner's insurance policy for Jane Doe (Policy Number HP-87654321) cover
     )
 
     return benchmark
-
 
 def create_claim_response_benchmark() -> Benchmark:
     """

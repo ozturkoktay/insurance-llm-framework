@@ -14,17 +14,14 @@ from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-# Default path for storing evaluation results
 DEFAULT_EVALUATIONS_DIR = os.path.join(
     os.path.dirname(__file__), "evaluations")
-
 
 @dataclass
 class HumanEvaluationCriteria:
@@ -35,7 +32,6 @@ class HumanEvaluationCriteria:
     min_score: int
     max_score: int
     rubric: Dict[int, str]
-
 
 @dataclass
 class HumanEvaluationForm:
@@ -298,7 +294,7 @@ class HumanEvaluationForm:
                 ]
             )
         else:
-            # Generic evaluation form for other tasks
+
             return cls(
                 id=f"generic_eval_{datetime.datetime.now().strftime('%Y%m%d')}",
                 title="LLM Output Evaluation",
@@ -333,7 +329,6 @@ class HumanEvaluationForm:
                 ]
             )
 
-
 @dataclass
 class HumanEvaluationSubmission:
     """Class representing a single human evaluation submission."""
@@ -366,7 +361,6 @@ class HumanEvaluationSubmission:
             "task_type": self.task_type,
             "model_id": self.model_id
         }
-
 
 class HumanEvaluationManager:
     """Manager class for human evaluations."""
@@ -449,7 +443,6 @@ class HumanEvaluationManager:
         """
         self.submissions.append(submission)
 
-        # Save to disk
         submissions_dir = Path(self.evaluations_dir) / "submissions"
         submissions_dir.mkdir(parents=True, exist_ok=True)
 
@@ -514,7 +507,6 @@ class HumanEvaluationManager:
         if not submissions:
             return {}
 
-        # Group by criteria
         criteria_scores: Dict[str, List[int]] = {}
 
         for submission in submissions:
@@ -523,7 +515,6 @@ class HumanEvaluationManager:
                     criteria_scores[criterion] = []
                 criteria_scores[criterion].append(score)
 
-        # Calculate averages
         aggregates = {
             "overall": {
                 "average": sum(s.get_average_score() for s in submissions) / len(submissions),
@@ -556,7 +547,6 @@ class HumanEvaluationManager:
             logger.warning("No submissions to export")
             return False
 
-        # Collect all possible criteria
         all_criteria = set()
         for submission in submissions:
             all_criteria.update(submission.scores.keys())
@@ -582,12 +572,10 @@ class HumanEvaluationManager:
                         "average_score": submission.get_average_score(),
                     }
 
-                    # Add individual scores
                     for criterion in all_criteria:
                         row[f"score_{criterion}"] = submission.scores.get(
                             criterion, "")
 
-                    # Combine comments
                     row["comments"] = "; ".join(
                         f"{k}: {v}" for k, v in submission.comments.items())
 
@@ -600,7 +588,6 @@ class HumanEvaluationManager:
         except Exception as e:
             logger.error(f"Error exporting to CSV {output_path}: {str(e)}")
             return False
-
 
 def get_human_evaluation_manager() -> HumanEvaluationManager:
     """Get or create a global human evaluation manager instance."""

@@ -12,13 +12,11 @@ import logging
 from pathlib import Path
 import base64
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
-
 
 def file_uploader(
     file_type: str = "text",
@@ -36,11 +34,10 @@ def file_uploader(
     Returns:
         Tuple containing the text content and the filename
     """
-    # Set default allowed types if not provided
+
     if allowed_types is None:
         allowed_types = ["txt", "pdf", "docx", "json"]
 
-    # Determine appropriate sample directory
     sample_dir = None
     if default_dir:
         sample_dir = default_dir
@@ -51,13 +48,11 @@ def file_uploader(
     elif file_type == "communication":
         sample_dir = "data/communications"
 
-    # Find sample files if directory exists
     sample_files = []
     if sample_dir and os.path.exists(sample_dir):
         sample_files = [f for f in os.listdir(sample_dir)
                         if any(f.endswith(ext) for ext in allowed_types)]
 
-    # Create tabs for different upload methods
     tab1, tab2, tab3 = st.tabs(["Upload File", "Sample Files", "Enter Text"])
 
     file_content = None
@@ -72,12 +67,11 @@ def file_uploader(
 
         if uploaded_file is not None:
             try:
-                # Read file content
+
                 file_content = uploaded_file.read().decode("utf-8")
                 file_name = uploaded_file.name
                 st.success(f"Uploaded: {file_name}")
 
-                # Preview content
                 with st.expander("Preview Content", expanded=True):
                     st.text_area("File Content", value=file_content[:1000] + (
                         "..." if len(file_content) > 1000 else ""), height=200, disabled=True)
@@ -101,7 +95,6 @@ def file_uploader(
                     file_name = selected_sample
                     st.success(f"Loaded sample: {file_name}")
 
-                    # Preview content
                     with st.expander("Preview Content", expanded=True):
                         st.text_area("File Content", value=file_content[:1000] + (
                             "..." if len(file_content) > 1000 else ""), height=200, disabled=True)
@@ -126,7 +119,6 @@ def file_uploader(
 
     return file_content, file_name
 
-
 def save_uploaded_file(
     uploaded_file: BinaryIO,
     save_dir: str,
@@ -144,17 +136,14 @@ def save_uploaded_file(
         The path to the saved file, or None if saving failed
     """
     try:
-        # Create directory if it doesn't exist
+
         os.makedirs(save_dir, exist_ok=True)
 
-        # Use provided filename or original filename
         if file_name is None:
             file_name = uploaded_file.name
 
-        # Create full path
         file_path = os.path.join(save_dir, file_name)
 
-        # Write file
         with open(file_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
 
@@ -164,7 +153,6 @@ def save_uploaded_file(
     except Exception as e:
         logger.error(f"Error saving uploaded file: {str(e)}")
         return None
-
 
 def display_document_library(doc_dir: str,
                              filter_extension: Optional[List[str]] = None,
@@ -177,27 +165,23 @@ def display_document_library(doc_dir: str,
         filter_extension: Optional list of file extensions to filter by
         on_select: Optional callback function when a document is selected
     """
-    # Check if directory exists
+
     if not os.path.exists(doc_dir):
         st.warning(f"Document directory not found: {doc_dir}")
         return None
 
-    # Get list of files
     files = os.listdir(doc_dir)
 
-    # Filter by extension if specified
     if filter_extension:
         files = [f for f in files if any(f.lower().endswith(
             ext.lower()) for ext in filter_extension)]
 
-    # Sort files
     files.sort()
 
     if not files:
         st.info("No documents available")
         return None
 
-    # Display as a table with metadata
     file_data = []
     for file in files:
         file_path = os.path.join(doc_dir, file)
@@ -211,20 +195,16 @@ def display_document_library(doc_dir: str,
             "Type": file.split(".")[-1].upper()
         })
 
-    # Convert to DataFrame
     docs_df = pd.DataFrame(file_data)
 
-    # Display table
     st.dataframe(docs_df, hide_index=True, use_container_width=True)
 
-    # Add document selector
     selected_doc = st.selectbox("Select Document", options=files)
 
     if selected_doc and on_select:
         on_select(os.path.join(doc_dir, selected_doc))
 
     return selected_doc if selected_doc else None
-
 
 def document_viewer(file_path: str, max_height: int = 400):
     """
@@ -240,7 +220,6 @@ def document_viewer(file_path: str, max_height: int = 400):
 
     file_extension = file_path.lower().split(".")[-1]
 
-    # Display based on file type
     if file_extension in ["txt", "md", "json"]:
         try:
             with open(file_path, "r") as f:
@@ -252,12 +231,11 @@ def document_viewer(file_path: str, max_height: int = 400):
             st.error(f"Error reading file: {str(e)}")
 
     elif file_extension == "pdf":
-        # For PDF, display using PDF viewer
+
         try:
             with open(file_path, "rb") as f:
                 base64_pdf = base64.b64encode(f.read()).decode('utf-8')
 
-            # Display PDF
             pdf_display = f"""
                 <iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="{max_height}" type="application/pdf"></iframe>
             """
@@ -266,17 +244,16 @@ def document_viewer(file_path: str, max_height: int = 400):
             st.error(f"Error displaying PDF: {str(e)}")
 
     elif file_extension in ["jpg", "jpeg", "png", "gif"]:
-        # For images, use st.image
+
         try:
             st.image(file_path, caption=os.path.basename(file_path))
         except Exception as e:
             st.error(f"Error displaying image: {str(e)}")
 
     else:
-        # For other file types, show download link
+
         st.info(f"Preview not available for {file_extension.upper()} files")
 
-        # Create download button
         with open(file_path, "rb") as f:
             file_bytes = f.read()
 
