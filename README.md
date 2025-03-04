@@ -180,20 +180,6 @@ LOG_LEVEL=DEBUG python run.py
 5. **Model Comparison**: Compare different models and configurations
 6. **Settings**: Configure application settings and view system information
 
-### Command Line Interface (CLI)
-
-The framework also provides a CLI for batch processing and scripting:
-
-```bash
-# Generate policy summaries from a batch of documents
-python cli.py generate --task policy_summary --input data/policies/ --output results/
-
-# Run benchmarks from the command line
-python cli.py benchmark --model phi-2 --task claim_response
-
-# Evaluate outputs against references
-python cli.py evaluate --generated results/generated/ --reference data/references/
-```
 
 ### API Usage
 
@@ -229,7 +215,6 @@ print(f"ROUGE-L score: {score['rouge-l']}")
 insurance-llm-framework/
 ├── app.py                      # Main Streamlit application
 ├── run.py                      # Application startup script
-├── cli.py                      # Command-line interface
 ├── requirements.txt            # Project dependencies
 ├── Dockerfile                  # Docker configuration
 ├── .env                        # Environment variables (create this)
