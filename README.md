@@ -391,7 +391,7 @@ ModelConfig.MODEL_DETAILS["custom-model"] = {
 }
 ```
 
-## 💻 CPU vs GPU Optimization
+## CPU vs GPU Optimization
 
 The framework includes extensive optimizations for both CPU and GPU environments:
 
